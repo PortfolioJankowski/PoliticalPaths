@@ -16,6 +16,7 @@ Krótkie uzasadnione decyzje — żeby nie rozstrzygać ponownie za rok.
 | [010](010-electoral-district-per-election.md) | Okręgi per Election + chamber, snapshoty, listy w okręgu | Accepted |
 | [011](011-senate-no-electoral-lists.md) | Senat: brak `ElectoralList`, profil `SenateMajoritarian` | Accepted |
 | [012](012-mandate-lifecycle-separate-from-election-results.md) | `Mandate` / kadencja oddzielnie od `Elected` | Accepted |
+| [013](013-batch-per-pipeline-sync.md) | Batch per pipeline, sync SHA, bez Hangfire na dev | Accepted |
 
 ## Format nowego ADR
 

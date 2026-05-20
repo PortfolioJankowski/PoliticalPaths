@@ -1,0 +1,22 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: politicalpaths-mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root_dev
+      MARIADB_DATABASE: politicalpaths
+      MARIADB_USER: politicalpaths
+      MARIADB_PASSWORD: politicalpaths_dev
+    volumes:
+      - politicalpaths_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  politicalpaths_mariadb_data:

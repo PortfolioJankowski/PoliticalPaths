@@ -44,7 +44,7 @@ Plan zakłada **ręczne transformery**, **atrybut `LogicalNames`**, import wiers
 |---|---------|-----------|
 | 2.1 | Atrybut `ImportTransformerAttribute` + `AttributeBasedTransformerRegistry` | Kolizje wykrywane przy starcie |
 | 2.2 | `IImportTransformer`, `TransformContext`, `ImportOrchestrator` (Raw → Transform) | Orkiestracja w kodzie |
-| 2.3 | Domena minimalna: `Election`, `Politician`, `PoliticianAlias`, `Candidacy` | Migracja |
+| 2.3 | Domena minimalna: `Election`, `Politician`, `PoliticianAlias`, `Candidacy` | Migracja `DomainModelSkeleton` (szkielet); zapis z transformerów — TODO |
 | 2.4 | `IPoliticianResolver` — normalizacja nazwy, tworzenie, prosty match po `NormalizedName` | Duplikaty ograniczone |
 | 2.5 | **Pierwszy ręczny transformer** (wybierz jeden plik, który masz) — `TransformRowAsync` | Wiersze `Transformed` w DB |
 | 2.6 | `TransformationError` + status `NeedsManualReview` | Błędny wiersz nie blokuje całego pliku |

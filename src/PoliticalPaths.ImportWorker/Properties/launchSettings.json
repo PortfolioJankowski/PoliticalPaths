@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Sync pipelines (F5)": {
+      "commandName": "Project",
+      "commandLineArgs": "sync",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    "DB migrate": {
+      "commandName": "Project",
+      "commandLineArgs": "db migrate",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    "Sync — bez seeda": {
+      "commandName": "Project",
+      "commandLineArgs": "sync --no-seed",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

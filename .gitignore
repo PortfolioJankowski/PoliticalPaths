@@ -9,9 +9,12 @@
 **/bin/
 **/obj/
 
-# Pliki systemowe i tymczasowe obrazy
+# Pliki systemowe
 Thumbs.db
 Desktop.ini
-Bez tytułu.jpg
-*.jpg
-*.png
+
+# Logi importu
+logs/
+
+# User secrets
+**/appsettings.*.local.json

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PoliticalPaths": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

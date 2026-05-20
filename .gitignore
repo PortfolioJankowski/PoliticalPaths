@@ -1,0 +1,17 @@
+# Visual Studio pliki tymczasowe i konfiguracja
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Pliki kompilacji .NET (Build outputs)
+**/bin/
+**/obj/
+
+# Pliki systemowe i tymczasowe obrazy
+Thumbs.db
+Desktop.ini
+Bez tytułu.jpg
+*.jpg
+*.png

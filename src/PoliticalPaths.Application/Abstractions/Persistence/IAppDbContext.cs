@@ -18,8 +18,7 @@ public interface IAppDbContext
     DbSet<ImportFile> ImportFiles { get; }
     DbSet<ImportRow> ImportRows { get; }
     DbSet<TransformationError> TransformationErrors { get; }
-    DbSet<ImportJob> ImportJobs { get; }
-
+
     // Domain
     DbSet<TerritorialUnit> TerritorialUnits { get; }
     DbSet<ElectoralDistrictTerritory> ElectoralDistrictTerritories { get; }

@@ -22,7 +22,6 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IFileChecksumService, FileChecksumService>();
         services.AddScoped<IRawImportRowWriter, RawImportRowWriter>();
-        services.AddSingleton<IImportLogContext, SerilogImportLogContext>();
 
         return services;
     }

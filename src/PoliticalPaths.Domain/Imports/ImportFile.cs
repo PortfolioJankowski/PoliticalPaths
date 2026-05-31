@@ -11,7 +11,7 @@ public class ImportFile
     public string Sha256 { get; set; } = null!;
     public long FileSizeBytes { get; set; }
     public string ContentType { get; set; } = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    public DataSourceType DataSourceType { get; set; }
+    public string DataSourceType { get; set; }
     public string FormatVersion { get; set; } = "v1";
 
     public ImportFileStatus Status { get; set; } = ImportFileStatus.Discovered;
@@ -25,4 +25,20 @@ public class ImportFile
     public DateTime? RawImportCompletedAt { get; set; }
 
     public ICollection<ImportRow> Rows { get; set; } = [];
+
+    public void EreaseData()
+    {
+        this.Rows.Clear();
+        this.TotalRows = 0;
+        this.TransformedRows = 0;
+        this.FailedRows = 0;
+        this.WarningCount = 0;
+        this.LastProcessedRowId = null;
+        this.LogFilePath = null;
+        this.RawImportStartedAt = null;
+        this.RawImportCompletedAt = null;
+        this.Status = ImportFileStatus.Discovered;
+    }
+
+
 }

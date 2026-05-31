@@ -1,4 +1,4 @@
-using PoliticalPaths.Application.Imports;
+using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Domain.Imports;
 
 namespace PoliticalPaths.Application.Abstractions.Imports;

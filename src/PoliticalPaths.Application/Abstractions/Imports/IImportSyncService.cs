@@ -7,7 +7,7 @@ public interface IImportSyncService
 
 public sealed record ImportSyncOptions(
     string InboxRoot,
-    bool SeedIfEmpty = true,
+    bool SeedIfEmpty = false,
     bool ForceReimport = false);
 
 public sealed record ImportSyncResult(

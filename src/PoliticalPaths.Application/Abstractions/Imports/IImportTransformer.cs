@@ -1,3 +1,5 @@
+using PoliticalPaths.Application.Pipelines;
+using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 
 namespace PoliticalPaths.Application.Abstractions.Imports;
@@ -8,11 +10,6 @@ public interface IImportTransformer
 
     Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
-        IReadOnlyList<ImportRow> rows,
+        PipelineExecutionContext context,
         CancellationToken cancellationToken = default);
 }
-
-public sealed record TransformFileResult(
-    int RowsTransformed,
-    int RowsFailed,
-    int Warnings);

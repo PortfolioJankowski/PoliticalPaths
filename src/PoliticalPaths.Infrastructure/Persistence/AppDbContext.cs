@@ -20,7 +20,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<ImportFile> ImportFiles => Set<ImportFile>();
     public DbSet<ImportRow> ImportRows => Set<ImportRow>();
     public DbSet<TransformationError> TransformationErrors => Set<TransformationError>();
-    public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
+
 
     // Geography
     public DbSet<TerritorialUnit> TerritorialUnits => Set<TerritorialUnit>();

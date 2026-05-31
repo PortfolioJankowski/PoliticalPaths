@@ -8,8 +8,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddTransformImporters(this IServiceCollection services)
     {
-        services.AddSingleton<IImportTransformerRegistry, ImportTransformerRegistry>();
-
         var assembly = typeof(DependencyInjection).Assembly;
         foreach (var type in assembly.GetTypes())
         {

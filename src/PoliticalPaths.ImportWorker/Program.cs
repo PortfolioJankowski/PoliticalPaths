@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PoliticalPaths.Application;
 using PoliticalPaths.Application.Abstractions.Imports;
-using PoliticalPaths.Importers.Raw;
 using PoliticalPaths.Importers.Transform;
 using PoliticalPaths.Infrastructure;
 using PoliticalPaths.Infrastructure.Persistence;
@@ -28,7 +27,6 @@ var host = Host.CreateDefaultBuilder(args)
     {
         services.AddApplication();
         services.AddInfrastructure(context.Configuration);
-        services.AddRawImporters();
         services.AddTransformImporters();
     })
     .Build();
@@ -58,7 +56,8 @@ static async Task<int> RunAsync(IHost host, string[] args)
 static async Task<int> RunSyncAsync(IHost host, string[] args)
 {
     var configuration = host.Services.GetRequiredService<IConfiguration>();
-    var syncService = host.Services.GetRequiredService<IImportSyncService>();
+    await using var scope = host.Services.CreateAsyncScope();
+    var syncService = scope.ServiceProvider.GetRequiredService<IImportSyncService>();
 
     var repoRoot = RepoPaths.FindRepoRoot();
     var inbox = configuration["Import:InboxPath"] is { Length: > 0 } relative
@@ -87,6 +86,11 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
     }
 
     Console.WriteLine($"Total: pipelines={result.PipelinesProcessed}, files imported={result.FilesImported}, skipped={result.FilesSkipped}, raw rows={result.TotalRowsRaw}");
+    //TODO -> PRZETŁUMACZYĆ NA POLSKI TO CO JEST W BAZIE DANYCH/DOMENE
+    //TODO -> Sprawdzić czy domena jest poprawna
+    //TODO -> Dodać import pierwszego pliku
+    //TODO -> RAPORT HTML/RAZOR PAGES Z RESULTA ??
+
     return 0;
 }
 

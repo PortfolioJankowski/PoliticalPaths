@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Application.Imports.Transform;
+using PoliticalPaths.Application.Pipelines;
+using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 
 namespace PoliticalPaths.Importers.Transform;
@@ -11,83 +12,11 @@ namespace PoliticalPaths.Importers.Transform;
 /// </summary>
 public abstract class PipelineTransformerBase(
     IAppDbContext db,
-    ITransformationErrorRecorder errorRecorder,
-    ILogger logger) : IImportTransformer
+    ITransformationErrorRecorder errorRecorder) : IImportTransformer
 {
     public abstract string PipelineKey { get; }
-
-    public virtual async Task<TransformFileResult> TransformFileAsync(
-        ImportFile file,
-        IReadOnlyList<ImportRow> rows,
-        CancellationToken cancellationToken = default)
-    {
-        var transformed = 0;
-        var failed = 0;
-        var warnings = 0;
-
-        foreach (var row in rows)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var outcome = await TransformRowSafeAsync(row, cancellationToken);
-
-            switch (outcome.Kind)
-            {
-                case RowOutcomeKind.Success:
-                    row.Status = ImportRowStatus.Transformed;
-                    row.TransformedAt = DateTime.UtcNow;
-                    transformed++;
-                    break;
-                case RowOutcomeKind.SuccessWithWarnings:
-                    row.Status = ImportRowStatus.Transformed;
-                    row.TransformedAt = DateTime.UtcNow;
-                    transformed++;
-                    warnings += outcome.WarningCount;
-                    break;
-                case RowOutcomeKind.Failed:
-                    row.Status = ImportRowStatus.Failed;
-                    failed++;
-                    break;
-                case RowOutcomeKind.Skipped:
-                    row.Status = ImportRowStatus.Skipped;
-                    break;
-            }
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation(
-            "Pipeline {PipelineKey} file {ImportFileId}: transformed={Transformed}, failed={Failed}, warnings={Warnings}",
-            PipelineKey,
-            file.Id,
-            transformed,
-            failed,
-            warnings);
-
-        return new TransformFileResult(transformed, failed, warnings);
-    }
-
-    private async Task<RowTransformOutcome> TransformRowSafeAsync(
-        ImportRow row,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await TransformRowAsync(row, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            errorRecorder.Record(
-                row,
-                "transform.unhandled",
-                TransformationSeverity.Error,
-                "TRANSFORM_UNHANDLED",
-                ex.Message,
-                detailsJson: ex.ToString());
-
-            return RowTransformOutcome.Failed();
-        }
-    }
-
+    public abstract Task<TransformFileResult> TransformFileAsync(ImportFile file, PipelineExecutionContext context, CancellationToken cancellationToken = default);
+    
     protected abstract Task<RowTransformOutcome> TransformRowAsync(
         ImportRow row,
         CancellationToken cancellationToken);

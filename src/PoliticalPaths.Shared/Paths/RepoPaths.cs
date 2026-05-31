@@ -19,8 +19,5 @@ public static class RepoPaths
         => Path.Combine(repoRoot ?? FindRepoRoot(), "source-data");
 
     public static string InboxDirectory(string? repoRoot = null)
-        => Path.Combine(SourceDataRoot(repoRoot), "inbox");
-
-    public static string SamplesDirectory(string? repoRoot = null)
-        => Path.Combine(SourceDataRoot(repoRoot), "samples", "v1");
+        => Path.Combine(SourceDataRoot(repoRoot ?? FindRepoRoot()), "inbox");
 }

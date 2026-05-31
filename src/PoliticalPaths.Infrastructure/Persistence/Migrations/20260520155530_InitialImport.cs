@@ -21,7 +21,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    PrimarySourceType = table.Column<int>(type: "int", nullable: true),
+                    PrimarySourceType = table.Column<string>(type: "varchar(64)", nullable: true),
                     ElectionYear = table.Column<int>(type: "int", nullable: true),
                     StartedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -52,7 +52,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     FileSizeBytes = table.Column<long>(type: "bigint", nullable: false),
                     ContentType = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DataSourceType = table.Column<int>(type: "int", nullable: false),
+                    DataSourceType = table.Column<string>(type: "varchar(64)", nullable: false),
                     FormatVersion = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false),
@@ -75,33 +75,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                         principalTable: "ImportBatches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "ImportJobs",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ImportBatchId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    JobType = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Attempt = table.Column<int>(type: "int", nullable: false),
-                    NextRetryAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastError = table.Column<string>(type: "varchar(4000)", maxLength: 4000, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ImportJobs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ImportJobs_ImportBatches_ImportBatchId",
-                        column: x => x.ImportBatchId,
-                        principalSchema: "app",
-                        principalTable: "ImportBatches",
-                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -224,9 +197,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ImportJobs");
-
             migrationBuilder.DropTable(
                 name: "TransformationErrors");
 

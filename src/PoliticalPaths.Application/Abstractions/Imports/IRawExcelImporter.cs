@@ -5,7 +5,7 @@ namespace PoliticalPaths.Application.Abstractions.Imports;
 public interface IRawExcelImporter
 {
     IReadOnlyList<string> LogicalNames { get; }
-    DataSourceType DataSourceType { get; }
+    string DataSourceType { get; }
 
     Task<RawImportResult> ImportAsync(
         ImportFile file,

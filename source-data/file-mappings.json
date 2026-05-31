@@ -1,0 +1,16 @@
+{
+    "data" : {
+        "Sejm": {
+            "2023": [
+            {
+                "pipeline": "Sejm2023",
+                "logicalName": "Kandydaci XLSX",
+                "rawData": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
+                "fileName": "kandydaci_sejm_utf8.xlsx",
+                "fileType": "xlsx",
+                "_comment": "Wyniki głosowania na kandydatów po okręgach Sejm"
+            }
+            ]
+        }
+    }
+}

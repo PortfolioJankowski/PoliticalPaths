@@ -12,15 +12,11 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "app");
-
             migrationBuilder.AlterDatabase()
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "ImportBatches",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -43,7 +39,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ImportFiles",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -77,7 +72,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ImportFiles_ImportBatches_ImportBatchId",
                         column: x => x.ImportBatchId,
-                        principalSchema: "app",
                         principalTable: "ImportBatches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -86,7 +80,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ImportJobs",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -114,7 +107,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ImportRows",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -142,7 +134,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ImportRows_ImportFiles_ImportFileId",
                         column: x => x.ImportFileId,
-                        principalSchema: "app",
                         principalTable: "ImportFiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -151,7 +142,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "TransformationErrors",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -178,7 +168,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_TransformationErrors_ImportRows_ImportRowId",
                         column: x => x.ImportRowId,
-                        principalSchema: "app",
                         principalTable: "ImportRows",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -187,56 +176,47 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportBatches_StartedAt",
-                schema: "app",
                 table: "ImportBatches",
                 column: "StartedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportBatches_Status",
-                schema: "app",
                 table: "ImportBatches",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportFiles_ImportBatchId_Sha256",
-                schema: "app",
                 table: "ImportFiles",
                 columns: new[] { "ImportBatchId", "Sha256" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportFiles_LogicalName",
-                schema: "app",
                 table: "ImportFiles",
                 column: "LogicalName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportJobs_ImportBatchId",
-                schema: "app",
                 table: "ImportJobs",
                 column: "ImportBatchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportJobs_Status_NextRetryAt",
-                schema: "app",
                 table: "ImportJobs",
                 columns: new[] { "Status", "NextRetryAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportRows_ImportFileId_SheetName_RowNumber",
-                schema: "app",
                 table: "ImportRows",
                 columns: new[] { "ImportFileId", "SheetName", "RowNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportRows_ImportFileId_Status",
-                schema: "app",
                 table: "ImportRows",
                 columns: new[] { "ImportFileId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransformationErrors_ImportRowId",
-                schema: "app",
                 table: "TransformationErrors",
                 column: "ImportRowId");
         }
@@ -245,24 +225,19 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ImportJobs",
-                schema: "app");
+                name: "ImportJobs");
 
             migrationBuilder.DropTable(
-                name: "TransformationErrors",
-                schema: "app");
+                name: "TransformationErrors");
 
             migrationBuilder.DropTable(
-                name: "ImportRows",
-                schema: "app");
+                name: "ImportRows");
 
             migrationBuilder.DropTable(
-                name: "ImportFiles",
-                schema: "app");
+                name: "ImportFiles");
 
             migrationBuilder.DropTable(
-                name: "ImportBatches",
-                schema: "app");
+                name: "ImportBatches");
         }
     }
 }

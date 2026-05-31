@@ -14,7 +14,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.CreateTable(
                 name: "ManualMappings",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -38,7 +37,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Parties",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -57,7 +55,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Politicians",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -79,7 +76,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "TerritorialUnits",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -101,7 +97,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "IdentityMatchCandidates",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -118,14 +113,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_IdentityMatchCandidates_Politicians_MatchedPoliticianId",
                         column: x => x.MatchedPoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_IdentityMatchCandidates_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -134,7 +127,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PartyAffiliations",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -151,14 +143,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_PartyAffiliations_Parties_PartyId",
                         column: x => x.PartyId,
-                        principalSchema: "app",
                         principalTable: "Parties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PartyAffiliations_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -167,7 +157,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PoliticianAliases",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -187,7 +176,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_PoliticianAliases_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -196,7 +184,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PoliticianMergeOverrides",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -214,14 +201,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_PoliticianMergeOverrides_Politicians_SourcePoliticianId",
                         column: x => x.SourcePoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PoliticianMergeOverrides_Politicians_TargetPoliticianId",
                         column: x => x.TargetPoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -230,7 +215,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Candidacies",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -251,7 +235,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Candidacies_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -260,7 +243,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "CandidacyVoteResults",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -279,7 +261,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_CandidacyVoteResults_Candidacies_CandidacyId",
                         column: x => x.CandidacyId,
-                        principalSchema: "app",
                         principalTable: "Candidacies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -288,7 +269,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ClubMemberships",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -305,7 +285,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ClubMemberships_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -314,7 +293,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "DistrictTurnoutResults",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -334,7 +312,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectionMandateAllocations",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -354,14 +331,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectionMandateAllocations_Candidacies_CandidacyId",
                         column: x => x.CandidacyId,
-                        principalSchema: "app",
                         principalTable: "Candidacies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ElectionMandateAllocations_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -370,7 +345,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Elections",
-                schema: "app",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -393,7 +367,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Elections_TerritorialUnits_VoivodeshipTerritorialUnitId",
                         column: x => x.VoivodeshipTerritorialUnitId,
-                        principalSchema: "app",
                         principalTable: "TerritorialUnits",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -402,7 +375,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralCommittees",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -422,14 +395,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralCommittees_Elections_ElectionId",
                         column: x => x.ElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ElectoralCommittees_Parties_PartyId",
                         column: x => x.PartyId,
-                        principalSchema: "app",
                         principalTable: "Parties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -438,7 +409,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralDistricts",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -456,7 +427,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralDistricts_Elections_ElectionId",
                         column: x => x.ElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -465,7 +435,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "LegislativeTerms",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -484,14 +454,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_LegislativeTerms_Elections_FoundingElectionId",
                         column: x => x.FoundingElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_LegislativeTerms_TerritorialUnits_VoivodeshipTerritorialUnit~",
                         column: x => x.VoivodeshipTerritorialUnitId,
-                        principalSchema: "app",
                         principalTable: "TerritorialUnits",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -500,7 +468,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralDistrictSnapshots",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -520,14 +488,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralDistrictSnapshots_Elections_ElectionId",
                         column: x => x.ElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ElectoralDistrictSnapshots_ElectoralDistricts_ElectoralDistr~",
                         column: x => x.ElectoralDistrictId,
-                        principalSchema: "app",
                         principalTable: "ElectoralDistricts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -536,7 +502,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralDistrictTerritories",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -550,14 +516,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralDistrictTerritories_ElectoralDistricts_ElectoralDis~",
                         column: x => x.ElectoralDistrictId,
-                        principalSchema: "app",
                         principalTable: "ElectoralDistricts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ElectoralDistrictTerritories_TerritorialUnits_TerritorialUni~",
                         column: x => x.TerritorialUnitId,
-                        principalSchema: "app",
                         principalTable: "TerritorialUnits",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -566,7 +530,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralLists",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -584,28 +548,24 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralLists_Elections_ElectionId",
                         column: x => x.ElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ElectoralLists_ElectoralCommittees_ElectoralCommitteeId",
                         column: x => x.ElectoralCommitteeId,
-                        principalSchema: "app",
                         principalTable: "ElectoralCommittees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ElectoralLists_ElectoralDistricts_ElectoralDistrictId",
                         column: x => x.ElectoralDistrictId,
-                        principalSchema: "app",
                         principalTable: "ElectoralDistricts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ElectoralLists_Parties_PartyId",
                         column: x => x.PartyId,
-                        principalSchema: "app",
                         principalTable: "Parties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -614,7 +574,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ParliamentaryClubs",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -631,7 +591,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ParliamentaryClubs_LegislativeTerms_LegislativeTermId",
                         column: x => x.LegislativeTermId,
-                        principalSchema: "app",
                         principalTable: "LegislativeTerms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -640,7 +599,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ElectoralListVoteResults",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -658,21 +617,18 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_ElectoralListVoteResults_Elections_ElectionId",
                         column: x => x.ElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ElectoralListVoteResults_ElectoralDistricts_ElectoralDistric~",
                         column: x => x.ElectoralDistrictId,
-                        principalSchema: "app",
                         principalTable: "ElectoralDistricts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ElectoralListVoteResults_ElectoralLists_ElectoralListId",
                         column: x => x.ElectoralListId,
-                        principalSchema: "app",
                         principalTable: "ElectoralLists",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -681,7 +637,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Mandates",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -709,56 +665,48 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Mandates_Candidacies_OriginatingCandidacyId",
                         column: x => x.OriginatingCandidacyId,
-                        principalSchema: "app",
                         principalTable: "Candidacies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_Elections_OriginatingElectionId",
                         column: x => x.OriginatingElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_ElectoralCommittees_ElectoralCommitteeId",
                         column: x => x.ElectoralCommitteeId,
-                        principalSchema: "app",
                         principalTable: "ElectoralCommittees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_ElectoralDistricts_ElectoralDistrictId",
                         column: x => x.ElectoralDistrictId,
-                        principalSchema: "app",
                         principalTable: "ElectoralDistricts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_ElectoralLists_ElectoralListId",
                         column: x => x.ElectoralListId,
-                        principalSchema: "app",
                         principalTable: "ElectoralLists",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_LegislativeTerms_LegislativeTermId",
                         column: x => x.LegislativeTermId,
-                        principalSchema: "app",
                         principalTable: "LegislativeTerms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_Mandates_PredecessorMandateId",
                         column: x => x.PredecessorMandateId,
-                        principalSchema: "app",
                         principalTable: "Mandates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Mandates_Politicians_PoliticianId",
                         column: x => x.PoliticianId,
-                        principalSchema: "app",
                         principalTable: "Politicians",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -767,7 +715,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "MandateEvents",
-                schema: "app",
+                
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -793,21 +741,18 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_MandateEvents_Elections_RelatedElectionId",
                         column: x => x.RelatedElectionId,
-                        principalSchema: "app",
                         principalTable: "Elections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_MandateEvents_Mandates_MandateId",
                         column: x => x.MandateId,
-                        principalSchema: "app",
                         principalTable: "Mandates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_MandateEvents_Mandates_RelatedMandateId",
                         column: x => x.RelatedMandateId,
-                        principalSchema: "app",
                         principalTable: "Mandates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -816,593 +761,531 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_ElectionId",
-                schema: "app",
                 table: "Candidacies",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_ElectoralCommitteeId",
-                schema: "app",
                 table: "Candidacies",
                 column: "ElectoralCommitteeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_ElectoralDistrictId",
-                schema: "app",
                 table: "Candidacies",
                 column: "ElectoralDistrictId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_ElectoralListId",
-                schema: "app",
                 table: "Candidacies",
                 column: "ElectoralListId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_PoliticianId_ElectionId",
-                schema: "app",
                 table: "Candidacies",
                 columns: new[] { "PoliticianId", "ElectionId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Candidacies_SourceFingerprint",
-                schema: "app",
                 table: "Candidacies",
                 column: "SourceFingerprint",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_CandidacyVoteResults_CandidacyId",
-                schema: "app",
                 table: "CandidacyVoteResults",
                 column: "CandidacyId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_CandidacyVoteResults_ElectionId_ElectoralDistrictId",
-                schema: "app",
                 table: "CandidacyVoteResults",
                 columns: new[] { "ElectionId", "ElectoralDistrictId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CandidacyVoteResults_ElectoralDistrictId",
-                schema: "app",
                 table: "CandidacyVoteResults",
                 column: "ElectoralDistrictId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClubMemberships_ParliamentaryClubId_PoliticianId_ValidFrom",
-                schema: "app",
                 table: "ClubMemberships",
                 columns: new[] { "ParliamentaryClubId", "PoliticianId", "ValidFrom" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClubMemberships_PoliticianId",
-                schema: "app",
                 table: "ClubMemberships",
                 column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DistrictTurnoutResults_ElectionId_ElectoralDistrictId",
-                schema: "app",
                 table: "DistrictTurnoutResults",
                 columns: new[] { "ElectionId", "ElectoralDistrictId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DistrictTurnoutResults_ElectoralDistrictId",
-                schema: "app",
                 table: "DistrictTurnoutResults",
                 column: "ElectoralDistrictId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_CandidacyId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 column: "CandidacyId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_ElectionId_CandidacyId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 columns: new[] { "ElectionId", "CandidacyId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_ElectoralDistrictId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 column: "ElectoralDistrictId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_ElectoralListId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 column: "ElectoralListId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_MandateId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 column: "MandateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectionMandateAllocations_PoliticianId",
-                schema: "app",
                 table: "ElectionMandateAllocations",
                 column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Elections_LegislativeTermId",
-                schema: "app",
                 table: "Elections",
                 column: "LegislativeTermId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Elections_NaturalKey",
-                schema: "app",
                 table: "Elections",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Elections_ParentLegislativeTermId",
-                schema: "app",
                 table: "Elections",
                 column: "ParentLegislativeTermId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Elections_VoivodeshipTerritorialUnitId",
-                schema: "app",
                 table: "Elections",
                 column: "VoivodeshipTerritorialUnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Elections_Year_Chamber_Scope",
-                schema: "app",
                 table: "Elections",
                 columns: new[] { "Year", "Chamber", "Scope" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralCommittees_ElectionId",
-                schema: "app",
                 table: "ElectoralCommittees",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralCommittees_NaturalKey",
-                schema: "app",
                 table: "ElectoralCommittees",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralCommittees_PartyId",
-                schema: "app",
                 table: "ElectoralCommittees",
                 column: "PartyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistricts_ElectionId_Chamber_DistrictNumber",
-                schema: "app",
                 table: "ElectoralDistricts",
                 columns: new[] { "ElectionId", "Chamber", "DistrictNumber" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistricts_NaturalKey",
-                schema: "app",
                 table: "ElectoralDistricts",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistrictSnapshots_ElectionId",
-                schema: "app",
                 table: "ElectoralDistrictSnapshots",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistrictSnapshots_ElectoralDistrictId_ElectionId_St~",
-                schema: "app",
                 table: "ElectoralDistrictSnapshots",
                 columns: new[] { "ElectoralDistrictId", "ElectionId", "StatisticsDate" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistrictTerritories_ElectoralDistrictId_Territorial~",
-                schema: "app",
                 table: "ElectoralDistrictTerritories",
                 columns: new[] { "ElectoralDistrictId", "TerritorialUnitId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralDistrictTerritories_TerritorialUnitId",
-                schema: "app",
                 table: "ElectoralDistrictTerritories",
                 column: "TerritorialUnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralLists_ElectionId",
-                schema: "app",
                 table: "ElectoralLists",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralLists_ElectoralCommitteeId",
-                schema: "app",
                 table: "ElectoralLists",
                 column: "ElectoralCommitteeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralLists_ElectoralDistrictId_ListNumber",
-                schema: "app",
                 table: "ElectoralLists",
                 columns: new[] { "ElectoralDistrictId", "ListNumber" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralLists_NaturalKey",
-                schema: "app",
                 table: "ElectoralLists",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralLists_PartyId",
-                schema: "app",
                 table: "ElectoralLists",
                 column: "PartyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralListVoteResults_ElectionId",
-                schema: "app",
                 table: "ElectoralListVoteResults",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralListVoteResults_ElectoralDistrictId",
-                schema: "app",
                 table: "ElectoralListVoteResults",
                 column: "ElectoralDistrictId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ElectoralListVoteResults_ElectoralListId_ElectionId_Electora~",
-                schema: "app",
                 table: "ElectoralListVoteResults",
                 columns: new[] { "ElectoralListId", "ElectionId", "ElectoralDistrictId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityMatchCandidates_MatchedPoliticianId",
-                schema: "app",
                 table: "IdentityMatchCandidates",
                 column: "MatchedPoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityMatchCandidates_PoliticianId",
-                schema: "app",
                 table: "IdentityMatchCandidates",
                 column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LegislativeTerms_Body_TermNumber",
-                schema: "app",
                 table: "LegislativeTerms",
                 columns: new[] { "Body", "TermNumber" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_LegislativeTerms_FoundingElectionId",
-                schema: "app",
                 table: "LegislativeTerms",
                 column: "FoundingElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LegislativeTerms_NaturalKey",
-                schema: "app",
                 table: "LegislativeTerms",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_LegislativeTerms_VoivodeshipTerritorialUnitId",
-                schema: "app",
                 table: "LegislativeTerms",
                 column: "VoivodeshipTerritorialUnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MandateEvents_MandateId",
-                schema: "app",
+                
                 table: "MandateEvents",
                 column: "MandateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MandateEvents_RelatedElectionId",
-                schema: "app",
+                
                 table: "MandateEvents",
                 column: "RelatedElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MandateEvents_RelatedMandateId",
-                schema: "app",
+                
                 table: "MandateEvents",
                 column: "RelatedMandateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_ElectoralCommitteeId",
-                schema: "app",
+                
                 table: "Mandates",
                 column: "ElectoralCommitteeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_ElectoralDistrictId_LegislativeTermId",
-                schema: "app",
+                
                 table: "Mandates",
                 columns: new[] { "ElectoralDistrictId", "LegislativeTermId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_ElectoralListId",
-                schema: "app",
+                
                 table: "Mandates",
                 column: "ElectoralListId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_LegislativeTermId_Body_ValidFrom_ValidTo",
-                schema: "app",
+                
                 table: "Mandates",
                 columns: new[] { "LegislativeTermId", "Body", "ValidFrom", "ValidTo" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_OriginatingCandidacyId",
-                schema: "app",
+                
                 table: "Mandates",
                 column: "OriginatingCandidacyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_OriginatingElectionId",
-                schema: "app",
+                
                 table: "Mandates",
                 column: "OriginatingElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_PoliticianId_ValidFrom",
-                schema: "app",
+                
                 table: "Mandates",
                 columns: new[] { "PoliticianId", "ValidFrom" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mandates_PredecessorMandateId",
-                schema: "app",
+                
                 table: "Mandates",
                 column: "PredecessorMandateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ManualMappings_Category_SourceKey",
-                schema: "app",
+                
                 table: "ManualMappings",
                 columns: new[] { "Category", "SourceKey" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ParliamentaryClubs_LegislativeTermId",
-                schema: "app",
+                
                 table: "ParliamentaryClubs",
                 column: "LegislativeTermId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ParliamentaryClubs_NaturalKey",
-                schema: "app",
+                
                 table: "ParliamentaryClubs",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Parties_NaturalKey",
-                schema: "app",
+                
                 table: "Parties",
                 column: "NaturalKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartyAffiliations_PartyId",
-                schema: "app",
+                
                 table: "PartyAffiliations",
                 column: "PartyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartyAffiliations_PoliticianId_PartyId_ValidFrom",
-                schema: "app",
+                
                 table: "PartyAffiliations",
                 columns: new[] { "PoliticianId", "PartyId", "ValidFrom" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_PoliticianAliases_NormalizedAlias",
-                schema: "app",
+                
                 table: "PoliticianAliases",
                 column: "NormalizedAlias");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PoliticianAliases_PoliticianId",
-                schema: "app",
+                
                 table: "PoliticianAliases",
                 column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PoliticianMergeOverrides_SourcePoliticianId",
-                schema: "app",
+                
                 table: "PoliticianMergeOverrides",
                 column: "SourcePoliticianId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PoliticianMergeOverrides_TargetPoliticianId",
-                schema: "app",
+                
                 table: "PoliticianMergeOverrides",
                 column: "TargetPoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Politicians_NormalizedName",
-                schema: "app",
+                
                 table: "Politicians",
                 column: "NormalizedName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Politicians_PkwCandidateId",
-                schema: "app",
+                
                 table: "Politicians",
                 column: "PkwCandidateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TerritorialUnits_TerytCode_ValidFrom",
-                schema: "app",
+                
                 table: "TerritorialUnits",
                 columns: new[] { "TerytCode", "ValidFrom" });
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Candidacies_Elections_ElectionId",
-                schema: "app",
+                
                 table: "Candidacies",
                 column: "ElectionId",
-                principalSchema: "app",
                 principalTable: "Elections",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Candidacies_ElectoralCommittees_ElectoralCommitteeId",
-                schema: "app",
+                
                 table: "Candidacies",
                 column: "ElectoralCommitteeId",
-                principalSchema: "app",
                 principalTable: "ElectoralCommittees",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Candidacies_ElectoralDistricts_ElectoralDistrictId",
-                schema: "app",
+                
                 table: "Candidacies",
                 column: "ElectoralDistrictId",
-                principalSchema: "app",
                 principalTable: "ElectoralDistricts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Candidacies_ElectoralLists_ElectoralListId",
-                schema: "app",
+                
                 table: "Candidacies",
                 column: "ElectoralListId",
-                principalSchema: "app",
                 principalTable: "ElectoralLists",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CandidacyVoteResults_Elections_ElectionId",
-                schema: "app",
+                
                 table: "CandidacyVoteResults",
                 column: "ElectionId",
-                principalSchema: "app",
                 principalTable: "Elections",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CandidacyVoteResults_ElectoralDistricts_ElectoralDistrictId",
-                schema: "app",
+                
                 table: "CandidacyVoteResults",
                 column: "ElectoralDistrictId",
-                principalSchema: "app",
                 principalTable: "ElectoralDistricts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ClubMemberships_ParliamentaryClubs_ParliamentaryClubId",
-                schema: "app",
+                
                 table: "ClubMemberships",
                 column: "ParliamentaryClubId",
-                principalSchema: "app",
                 principalTable: "ParliamentaryClubs",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_DistrictTurnoutResults_Elections_ElectionId",
-                schema: "app",
+                
                 table: "DistrictTurnoutResults",
                 column: "ElectionId",
-                principalSchema: "app",
                 principalTable: "Elections",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_DistrictTurnoutResults_ElectoralDistricts_ElectoralDistrictId",
-                schema: "app",
+                
                 table: "DistrictTurnoutResults",
                 column: "ElectoralDistrictId",
-                principalSchema: "app",
                 principalTable: "ElectoralDistricts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ElectionMandateAllocations_Elections_ElectionId",
-                schema: "app",
+                
                 table: "ElectionMandateAllocations",
                 column: "ElectionId",
-                principalSchema: "app",
                 principalTable: "Elections",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ElectionMandateAllocations_ElectoralDistricts_ElectoralDistr~",
-                schema: "app",
+                
                 table: "ElectionMandateAllocations",
                 column: "ElectoralDistrictId",
-                principalSchema: "app",
                 principalTable: "ElectoralDistricts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ElectionMandateAllocations_ElectoralLists_ElectoralListId",
-                schema: "app",
+                
                 table: "ElectionMandateAllocations",
                 column: "ElectoralListId",
-                principalSchema: "app",
                 principalTable: "ElectoralLists",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ElectionMandateAllocations_Mandates_MandateId",
-                schema: "app",
+                
                 table: "ElectionMandateAllocations",
                 column: "MandateId",
-                principalSchema: "app",
                 principalTable: "Mandates",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Elections_LegislativeTerms_LegislativeTermId",
-                schema: "app",
+                
                 table: "Elections",
                 column: "LegislativeTermId",
-                principalSchema: "app",
                 principalTable: "LegislativeTerms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Elections_LegislativeTerms_ParentLegislativeTermId",
-                schema: "app",
+                
                 table: "Elections",
                 column: "ParentLegislativeTermId",
-                principalSchema: "app",
                 principalTable: "LegislativeTerms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
@@ -1413,7 +1296,7 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_LegislativeTerms_Elections_FoundingElectionId",
-                schema: "app",
+                
                 table: "LegislativeTerms");
 
             migrationBuilder.DropTable(

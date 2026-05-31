@@ -13,14 +13,12 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.AddColumn<DateTime>(
                 name: "LastSyncedAt",
-                schema: "app",
                 table: "ImportBatches",
                 type: "datetime(6)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "PipelineKey",
-                schema: "app",
                 table: "ImportBatches",
                 type: "varchar(128)",
                 maxLength: 128,
@@ -30,7 +28,6 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportBatches_PipelineKey",
-                schema: "app",
                 table: "ImportBatches",
                 column: "PipelineKey",
                 unique: true);
@@ -41,17 +38,14 @@ namespace PoliticalPaths.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.DropIndex(
                 name: "IX_ImportBatches_PipelineKey",
-                schema: "app",
                 table: "ImportBatches");
 
             migrationBuilder.DropColumn(
                 name: "LastSyncedAt",
-                schema: "app",
                 table: "ImportBatches");
 
             migrationBuilder.DropColumn(
                 name: "PipelineKey",
-                schema: "app",
                 table: "ImportBatches");
         }
     }

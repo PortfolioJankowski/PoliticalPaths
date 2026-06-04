@@ -297,7 +297,8 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 columns: table => new
                 {
                     StartId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LiczbaGlosow = table.Column<int>(type: "int", nullable: false)
+                    LiczbaGlosow = table.Column<int>(type: "int", nullable: false),
+                    CzyMandat = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {

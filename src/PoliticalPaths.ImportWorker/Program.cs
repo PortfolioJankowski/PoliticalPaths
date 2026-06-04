@@ -88,8 +88,9 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
     }
 
     Console.WriteLine($"Total: pipelines={result.PipelinesProcessed}, files imported={result.FilesImported}, skipped={result.FilesSkipped}, raw rows={result.TotalRowsRaw}");
-    //TODO -> PRZETŁUMACZYĆ NA POLSKI TO CO JEST W BAZIE DANYCH/DOMENE
-    //TODO -> Sprawdzić czy domena jest poprawna
+    //TODO -> Sprawdzić czy domena jest poprawna -> co z wyborami na wójtów itd. Oni nie mają głosów na listę. Czy zrobić osobną tabelę do wyborow większościowych czy jak?
+    // Wygenerować SQLa aktualnej bazy i ocenić czy jest dobra/co do poprawy.
+    //Potrzebuje dodać decyzji 
     //TODO -> Dodać import pierwszego pliku
     //TODO -> RAPORT HTML/RAZOR PAGES Z RESULTA ??
 

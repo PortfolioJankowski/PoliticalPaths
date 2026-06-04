@@ -1,4 +1,5 @@
 using PoliticalPaths.Domain.Imports;
+using PoliticalPaths.Importers.Raw.Enums;
 
 namespace PoliticalPaths.Importers.Raw;
 

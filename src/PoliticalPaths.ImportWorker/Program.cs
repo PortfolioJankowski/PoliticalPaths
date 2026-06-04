@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using PoliticalPaths.Application;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Importers.Transform;
+using PoliticalPaths.Importers.Raw;
 using PoliticalPaths.Infrastructure;
 using PoliticalPaths.Infrastructure.Persistence;
 using PoliticalPaths.Shared.Paths;
@@ -27,6 +28,7 @@ var host = Host.CreateDefaultBuilder(args)
     {
         services.AddApplication();
         services.AddInfrastructure(context.Configuration);
+        services.AddRawImporters();
         services.AddTransformImporters();
     })
     .Build();

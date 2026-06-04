@@ -1,122 +1,56 @@
 namespace PoliticalPaths.Domain.Enums;
 
-public enum ElectoralChamber
+public enum RodzajIzby
 {
     Sejm = 0,
-    Senate = 1,
-    RegionalAssembly = 2
+    Senat = 1,
+    Sejmik = 2
 }
 
-public enum ElectionScope
+public enum ZasiegWyborow
 {
-    National = 0,
-    Voivodeship = 1,
-    European = 2
+    Krajowy = 0,
+    Wojewodzki = 1,
+    Europejski = 2
 }
 
-public enum ElectionProfile
+public enum OrdynacjaWyborcza
 {
-    SejmProportional = 0,
-    SenateMajoritarian = 1,
-    RegionalAssemblyProportional = 2,
-    Presidential = 3,
-    EuropeanParliament = 4
+    Proporcjonalna = 0,
+    Wiekszosciowa = 1
 }
 
-public enum ElectionKind
+public enum RodzajKomitetu
 {
-    General = 0,
-    Supplementary = 1,
-    Repeat = 2
+    Partyjny = 0,
+    Koalicyjny = 1,
+    WyborczyWyborcow = 2,
+    Inny = 3
 }
 
-public enum ElectoralCommitteeType
+public enum PoziomJednostki
 {
-    Party = 0,
-    Coalition = 1,
-    VotersCommittee = 2,
-    Other = 3
-}
-
-public enum TerritorialUnitLevel
-{
-    Voivodeship = 0,
+    Wojewodztwo = 0,
     Powiat = 1,
     Gmina = 2,
-    City = 3,
-    Other = 4
+    Miasto = 3,
+    Dzielnica = 4,
+    Inny = 5
 }
 
-public enum TerritoryCoverageType
+public enum StatusMandatu
 {
-    Primary = 0,
-    Partial = 1,
-    Excluded = 2
+    Aktywny = 0,
+    Wygasniety = 1,
+    Nieobjety = 2
 }
 
-public enum CollegialBodyType
+public enum PowodWygasnieciaMandatu
 {
-    Sejm = 0,
-    Senate = 1,
-    RegionalAssembly = 2
-}
-
-public enum MandateAcquisitionType
-{
-    InitialElection = 0,
-    SubstituteFromList = 1,
-    SupplementaryElection = 2,
-    Other = 3
-}
-
-public enum MandateStatus
-{
-    Active = 0,
-    Terminated = 1,
-    NeverAssumed = 2,
-    RenouncedBeforeStart = 3
-}
-
-public enum MandateTerminationReason
-{
-    Death = 0,
-    LossOfEligibility = 1,
-    TribunalStrippedMandate = 2,
-    Resignation = 3,
-    IncompatibleOfficeHeld = 4,
-    BecamePresident = 5,
-    IncompatibleAppointment = 6,
-    ElectedToEuropeanParliament = 7,
-    RefusedOath = 8,
-    Unknown = 9
-}
-
-public enum MandateEventType
-{
-    MandateAllocated = 0,
-    OathTaken = 1,
-    TerminationDeclared = 2,
-    SubstituteNotified = 3,
-    SubstituteAccepted = 4,
-    SubstituteDeclined = 5,
-    SupplementaryElectionCalled = 6,
-    ManualCorrection = 7
-}
-
-public enum IdentityMatchStatus
-{
-    Pending = 0,
-    Confirmed = 1,
-    Rejected = 2,
-    NeedsManualReview = 3
-}
-
-public enum ManualMappingCategory
-{
-    Territory = 0,
-    ElectoralDistrict = 1,
-    Politician = 2,
-    ElectoralCommittee = 3,
-    Party = 4,
-    Other = 5
+    Smierc = 0,
+    UtrataPrawaWybieralnosci = 1,
+    Rezygnacja = 2,
+    WyborNaPrezydenta = 3,
+    WyborDoParlamentuEuropejskiego = 4,
+    Inny = 5
 }

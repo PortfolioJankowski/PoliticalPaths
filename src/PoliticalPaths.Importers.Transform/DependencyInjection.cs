@@ -17,7 +17,7 @@ public static class DependencyInjection
             if (type.GetCustomAttribute<ImportTransformerAttribute>() is null)
                 continue;
 
-            services.AddScoped(type);
+            services.AddScoped(typeof(IImportTransformer), type);
         }
 
         return services;

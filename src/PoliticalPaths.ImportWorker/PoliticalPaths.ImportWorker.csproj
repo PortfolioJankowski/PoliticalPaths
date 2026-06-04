@@ -5,6 +5,7 @@
     <ProjectReference Include="..\PoliticalPaths.Application\PoliticalPaths.Application.csproj" />
     <ProjectReference Include="..\PoliticalPaths.Shared\PoliticalPaths.Shared.csproj" />
     <ProjectReference Include="..\PoliticalPaths.Importers.Transform\PoliticalPaths.Importers.Transform.csproj" />
+    <ProjectReference Include="..\PoliticalPaths.Importers.Raw\PoliticalPaths.Importers.Raw.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,8 +6,9 @@ using PoliticalPaths.Domain.Imports;
 namespace PoliticalPaths.Application.Imports.Transform;
 
 public sealed class TransformationExecutor(
-IEnumerable<IImportTransformer> transformers)
-: ITransformationExecutor
+    IEnumerable<IImportTransformer> transformers,
+    IExcelProcessor excelProcessor)
+    : ITransformationExecutor
 {
     private readonly Dictionary<string, IImportTransformer> _transformers =
         transformers.ToDictionary(
@@ -28,8 +29,11 @@ IEnumerable<IImportTransformer> transformers)
                 $"No transformer registered for '{context.PipelineKey}'.");
         }
 
+        var workbook = excelProcessor.GetWorkbook(file.StoragePath);
+
         return await transformer.TransformFileAsync(
             file,
+            workbook,
             context,
             cancellationToken);
     }

@@ -6,10 +6,10 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: root_dev
-      MARIADB_DATABASE: politicalpaths
-      MARIADB_USER: politicalpaths
-      MARIADB_PASSWORD: politicalpaths_dev
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
       - politicalpaths_mariadb_data:/var/lib/mysql
     healthcheck:
@@ -18,5 +18,21 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: politicalpaths-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - politicalpaths_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   politicalpaths_mariadb_data:
+  politicalpaths_redis_data:

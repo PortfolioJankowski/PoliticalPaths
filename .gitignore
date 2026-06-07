@@ -18,3 +18,4 @@ logs/
 
 # User secrets
 **/appsettings.*.local.json
+.env 

@@ -12,8 +12,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
+        var connectionString = configuration.GetConnectionString("MariaDb")
+            ?? throw new InvalidOperationException("Connection string 'MariaDb' is not configured.");
 
         var serverVersion = new MySqlServerVersion(new Version(11, 4, 0));
         services.AddDbContext<AppDbContext>(options =>
@@ -21,6 +21,13 @@ public static class DependencyInjection
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IFileChecksumService, FileChecksumService>();
+
+        var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "PoliticalPaths_";
+        });
 
         return services;
     }

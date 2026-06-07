@@ -54,3 +54,9 @@ public enum PowodWygasnieciaMandatu
     WyborDoParlamentuEuropejskiego = 4,
     Inny = 5
 }
+
+public enum TuraWyborow
+{
+    Pierwsza = 1,
+    Druga = 2
+}

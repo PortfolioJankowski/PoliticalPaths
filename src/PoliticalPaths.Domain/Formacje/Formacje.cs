@@ -1,5 +1,8 @@
 namespace PoliticalPaths.Domain.Formacje;
 
+/// <summary>
+/// Jako formacja rozumiem komitety wyborcze, z których startuj¹ politycy
+/// </summary>
 public sealed class Formacje
 {
     public Guid Id { get; set; }

@@ -23,7 +23,7 @@ public interface IAppDbContext
     DbSet<Formacje> Formacje { get; }
     DbSet<Kluby> Kluby { get; }
     DbSet<KlubyCzlonkowstwo> KlubyCzlonkowstwo { get; }
-    DbSet<MapaWyborow> MapaWyborow { get; }
+    DbSet<Wybory> MapaWyborow { get; }
     DbSet<SlownikWyborow> SlownikWyborow { get; }
     DbSet<OkregWyborczy> OkregWyborczy { get; }
     DbSet<MapaOkregow> MapaOkregow { get; }

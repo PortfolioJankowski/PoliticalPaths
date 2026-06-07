@@ -90,28 +90,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.ToTable("KlubyCzlonkowstwo");
                 });
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Geografia.Teryt", b =>
-                {
-                    b.Property<string>("KodTeryt")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("KodNadrzedny")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Nazwa")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("Poziom")
-                        .HasColumnType("int");
-
-                    b.HasKey("KodTeryt");
-
-                    b.ToTable("Teryt");
-                });
-
             modelBuilder.Entity("PoliticalPaths.Domain.Imports.ImportBatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -417,19 +395,14 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<string>("InformacjeDodatkowe")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("MiejsceUrodzeniaKodTeryt")
-                        .HasColumnType("longtext");
+                    b.Property<string>("MiejsceUrodzenia")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("Nazwisko")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Wyksztalcenie")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Zawod")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -442,14 +415,32 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ListaId")
+                    b.Property<Guid>("KomitetId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("NumerNaLiscie")
+                    b.Property<Guid?>("ListaId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("MiejsceZamieszkania")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int?>("NumerNaLiscie")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("PartiaId")
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("PolitykId")
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("Wyksztalcenie")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Zawod")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("Id");
 
@@ -461,6 +452,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("StartId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<bool>("CzyMandat")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("LiczbaGlosow")
                         .HasColumnType("int");
@@ -533,24 +527,61 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.ToTable("LudnoscOkregow");
                 });
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.MapaOkregow", b =>
-                {
-                    b.Property<string>("KodTeryt")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<Guid>("OkregWyborczyId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("KodTeryt", "OkregWyborczyId");
-
-                    b.ToTable("MapaOkregow");
-                });
-
-            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.MapaWyborow", b =>
+            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.OkregWyborczy", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<int>("LiczbaKandydatow")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LiczbaList")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LiczbaMandatow")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumerOkregu")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RodzajWyborowId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OkregWyborczy");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.RodzajeWyborow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Nazwa")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Poziom")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SlownikWyborow");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.Wybory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("CzyPrzedterminowe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<DateOnly?>("DataOgloszenia")
                         .HasColumnType("date");
@@ -564,41 +595,12 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("RodzajWyborowId")
                         .HasColumnType("char(36)");
 
+                    b.Property<int?>("Tura")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("MapaWyborow");
-                });
-
-            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.OkregWyborczy", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("NumerOkregu")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("RodzajWyborowId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OkregWyborczy");
-                });
-
-            modelBuilder.Entity("PoliticalPaths.Domain.Wybory.SlownikWyborow", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Nazwa")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SlownikWyborow");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Imports.ImportFile", b =>

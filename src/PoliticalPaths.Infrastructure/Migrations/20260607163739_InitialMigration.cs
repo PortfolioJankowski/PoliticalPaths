@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PoliticalPaths.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicjalna_PL : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -175,20 +175,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "MapaOkregow",
-                columns: table => new
-                {
-                    KodTeryt = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OkregWyborczyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MapaOkregow", x => new { x.KodTeryt, x.OkregWyborczyId });
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "MapaWyborow",
                 columns: table => new
                 {
@@ -196,7 +182,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     RodzajWyborowId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     DataOgloszenia = table.Column<DateOnly>(type: "date", nullable: true),
                     DataWyborow = table.Column<DateOnly>(type: "date", nullable: false),
-                    Ordynacja = table.Column<int>(type: "int", nullable: false)
+                    Ordynacja = table.Column<int>(type: "int", nullable: false),
+                    Tura = table.Column<int>(type: "int", nullable: true),
+                    CzyPrzedterminowe = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -210,7 +198,10 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     NumerOkregu = table.Column<int>(type: "int", nullable: false),
-                    RodzajWyborowId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    RodzajWyborowId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LiczbaMandatow = table.Column<int>(type: "int", nullable: false),
+                    LiczbaList = table.Column<int>(type: "int", nullable: false),
+                    LiczbaKandydatow = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -228,11 +219,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     Nazwisko = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DataUrodzenia = table.Column<DateOnly>(type: "date", nullable: true),
-                    MiejsceUrodzeniaKodTeryt = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Zawod = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Wyksztalcenie = table.Column<string>(type: "longtext", nullable: true)
+                    MiejsceUrodzenia = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -250,8 +237,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Nazwa = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Nazwa = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Poziom = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -265,30 +253,20 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    NumerNaLiscie = table.Column<int>(type: "int", nullable: false),
-                    ListaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    NumerNaLiscie = table.Column<int>(type: "int", nullable: true),
+                    ListaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Zawod = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Wyksztalcenie = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MiejsceZamieszkania = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PartiaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    KomitetId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_StartyWyborcze", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Teryt",
-                columns: table => new
-                {
-                    KodTeryt = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Nazwa = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Poziom = table.Column<int>(type: "int", nullable: false),
-                    KodNadrzedny = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Teryt", x => x.KodTeryt);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -488,9 +466,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "Mandaty");
 
             migrationBuilder.DropTable(
-                name: "MapaOkregow");
-
-            migrationBuilder.DropTable(
                 name: "MapaWyborow");
 
             migrationBuilder.DropTable(
@@ -504,9 +479,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "StartyWyborcze");
-
-            migrationBuilder.DropTable(
-                name: "Teryt");
 
             migrationBuilder.DropTable(
                 name: "TransformationErrors");

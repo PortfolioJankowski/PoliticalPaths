@@ -6,18 +6,13 @@ using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
-using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Imports;
-using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
-/// <summary>
-/// Demo end-to-end: wiele arkuszy → pełny model domenowy (wybory, okręgi, listy, kandydatury, wyniki, mandaty).
-/// </summary>
-[ImportTransformer("sejm-demo-2023")]
+[ImportTransformer("Sejm2023")]
 public sealed class SejmDemo2023Transformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
@@ -25,7 +20,7 @@ public sealed class SejmDemo2023Transformer(
     ILogger<SejmDemo2023Transformer> logger)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
-    public override string PipelineKey => "sejm-demo-2023";
+    public override string PipelineKey => "Sejm2023";
 
     public override async Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
@@ -42,6 +37,11 @@ public sealed class SejmDemo2023Transformer(
         var failed = 0;
         var warnings = 0;
 
+        //TODO -> tu trzeba to troszkę poczyścić
+        // Czy to ImportRows jest git?
+        // Może bardziej generyczna metoda w klasie bazowej typu Iterate itd...
+        // Wywalić wszystkie magic stringi do constów
+        // Templatka razorowa w osobnym pliku musi być!
         var rows = await Db.ImportRows
             .Where(r => r.ImportFileId == file.Id)
             .ToListAsync(cancellationToken);

@@ -60,3 +60,12 @@ public enum TuraWyborow
     Pierwsza = 1,
     Druga = 2
 }
+
+public enum PoziomWyborow
+{
+    GminaMiasto = 0,
+    Powiat = 1,
+    Wojewodztwo = 2,
+    Krajowy = 3,
+    Europejski = 4
+}

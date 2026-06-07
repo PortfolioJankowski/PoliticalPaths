@@ -1,5 +1,4 @@
 using PoliticalPaths.Domain.Formacje;
-using PoliticalPaths.Domain.Geografia;
 using PoliticalPaths.Domain.Kadencje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
@@ -18,15 +17,13 @@ public interface IAppDbContext
     DbSet<TransformationError> TransformationErrors { get; }
 
     // Domena
-    DbSet<Teryt> Teryt { get; }
     DbSet<Politycy> Politycy { get; }
     DbSet<Formacje> Formacje { get; }
     DbSet<Kluby> Kluby { get; }
     DbSet<KlubyCzlonkowstwo> KlubyCzlonkowstwo { get; }
     DbSet<Wybory> MapaWyborow { get; }
-    DbSet<SlownikWyborow> SlownikWyborow { get; }
+    DbSet<RodzajeWyborow> SlownikWyborow { get; }
     DbSet<OkregWyborczy> OkregWyborczy { get; }
-    DbSet<MapaOkregow> MapaOkregow { get; }
     DbSet<LudnoscOkregow> LudnoscOkregow { get; }
     DbSet<KomitetyWyborcze> KomitetyWyborcze { get; }
     DbSet<ListaWyborcza> ListaWyborcza { get; }

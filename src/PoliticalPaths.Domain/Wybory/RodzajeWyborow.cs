@@ -1,7 +1,10 @@
+using PoliticalPaths.Domain.Enums;
+
 namespace PoliticalPaths.Domain.Wybory;
 
-public sealed class SlownikWyborow
+public sealed class RodzajeWyborow
 {
     public Guid Id { get; set; }
     public string Nazwa { get; set; } = default!;
+    public PoziomWyborow Poziom { get; set; }
 }

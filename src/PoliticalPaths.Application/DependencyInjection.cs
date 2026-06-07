@@ -15,6 +15,8 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         services.AddValidatorsFromAssembly(assembly);
+
+        services.AddScoped<IEntityResolver, EntityResolver>();
         services.AddScoped<ITransformationExecutor, TransformationExecutor>();
         services.AddScoped<IImportSyncService, ImportSyncService>();
         services.AddScoped<ITransformationErrorRecorder, TransformationErrorRecorder>();

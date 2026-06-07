@@ -72,6 +72,32 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
+    public async Task UpdateOkregDetailsAsync(Guid okregId, int liczbaMandatow, int? liczbaList = null, int? liczbaKandydatow = null, CancellationToken ct = default)
+    {
+        var okreg = await db.OkregWyborczy.FindAsync([okregId], ct);
+        if (okreg != null)
+        {
+            okreg.LiczbaMandatow = liczbaMandatow;
+            if (liczbaList.HasValue) okreg.LiczbaList = liczbaList.Value;
+            if (liczbaKandydatow.HasValue) okreg.LiczbaKandydatow = liczbaKandydatow.Value;
+        }
+    }
+
+    public async Task GetOrCreateLudnoscOkregowAsync(Guid okregId, int rok, int mieszkancy, int uprawnieni, CancellationToken ct = default)
+    {
+        var ludnosc = await db.LudnoscOkregow.FindAsync([okregId, rok], ct);
+        if (ludnosc == null)
+        {
+            ludnosc = new LudnoscOkregow { OkregId = okregId, RokWyborow = rok, Mieszkancy = mieszkancy, Uprawnieni = uprawnieni };
+            db.LudnoscOkregow.Add(ludnosc);
+        }
+        else
+        {
+            ludnosc.Mieszkancy = mieszkancy;
+            ludnosc.Uprawnieni = uprawnieni;
+        }
+    }
+
     public async Task<KomitetyWyborcze> GetOrCreateKomitetAsync(string nazwa, CancellationToken ct = default)
     {
         var key = $"komitet_{nazwa}";

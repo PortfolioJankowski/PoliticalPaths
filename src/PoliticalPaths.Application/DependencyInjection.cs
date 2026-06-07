@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IEntityResolver, EntityResolver>();
         services.AddScoped<ITransformationExecutor, TransformationExecutor>();
         services.AddScoped<IImportSyncService, ImportSyncService>();
+        services.AddScoped<IImportReportService, ImportReportService>();
         services.AddScoped<ITransformationErrorRecorder, TransformationErrorRecorder>();
         services.AddScoped<IPipelineRegistry, PipelineRegistry>();
         return services;

@@ -12,6 +12,10 @@ public interface IEntityResolver
     Task<Wybory> GetOrCreateWyboryAsync(Guid rodzajId, DateOnly data, CancellationToken ct = default);
     
     Task<OkregWyborczy> GetOrCreateOkregAsync(int numer, Guid wyboryId, CancellationToken ct = default);
+
+    Task UpdateOkregDetailsAsync(Guid okregId, int liczbaMandatow, int? liczbaList = null, int? liczbaKandydatow = null, CancellationToken ct = default);
+
+    Task GetOrCreateLudnoscOkregowAsync(Guid okregId, int rok, int mieszkancy, int uprawnieni, CancellationToken ct = default);
     
     Task<KomitetyWyborcze> GetOrCreateKomitetAsync(string nazwa, CancellationToken ct = default);
     

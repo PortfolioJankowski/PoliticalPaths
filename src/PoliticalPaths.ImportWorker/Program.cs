@@ -76,6 +76,9 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
     var result = await syncService.SyncAllAsync(
         new ImportSyncOptions(inbox, seedIfEmpty, force));
 
+    var reportService = scope.ServiceProvider.GetRequiredService<IImportReportService>();
+    await reportService.GenerateReportAsync(result);
+
     foreach (var pipeline in result.Pipelines)
     {
         Console.WriteLine($"Pipeline [{pipeline.PipelineKey}] batch={pipeline.BatchId}");

@@ -64,18 +64,22 @@ public sealed class ImportSyncService(
 
         var fileStats = new List<FileSyncResult>();
 
-        foreach (var file in pipeline.Sources)
+        foreach (var source in pipeline.Sources)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var fileName in source.FileNames)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            var result = await SyncFileAsync(
-                batch,
-                pipeline,
-                file,
-                options.ForceReimport,
-                cancellationToken);
+                var result = await SyncFileAsync(
+                    batch,
+                    pipeline,
+                    source,
+                    fileName,
+                    options.ForceReimport,
+                    cancellationToken);
 
-            fileStats.Add(result);
+                fileStats.Add(result);
+            }
         }
 
         var summary = PipelineSyncSummaryFactory.Create(pipeline.PipelineKey, batch.Id, fileStats, options.ForceReimport);
@@ -108,12 +112,13 @@ public sealed class ImportSyncService(
       ImportBatch batch,
       PipelineExecutionContext context,
       ImportSourceDefinition descriptor,
+      string fileName,
       bool forceReimport,
       CancellationToken cancellationToken)
     {
         var filePath = Path.Combine(
         RepoPaths.InboxDirectory(),
-        descriptor.FileName);
+        fileName);
 
         if (!File.Exists(filePath))
         {
@@ -146,7 +151,7 @@ public sealed class ImportSyncService(
                     RowsRaw: existingFile.TotalRows,
                     RowsTransformed: existingFile.TransformedRows,
                     RowsFailed: existingFile.FailedRows,
-                    FileName: descriptor.FileName,
+                    FileName: fileName,
                     StartedAt: DateTime.UtcNow,
                     FinishedAt: DateTime.UtcNow);
             }
@@ -198,7 +203,7 @@ public sealed class ImportSyncService(
             RowsRaw: importFile.TotalRows,
             RowsTransformed: transformResult.RowsTransformed,
             RowsFailed: importFile.FailedRows,
-            FileName: descriptor.FileName,
+            FileName: fileName,
             StartedAt: startedAt,
             FinishedAt: finishedAt);
     }

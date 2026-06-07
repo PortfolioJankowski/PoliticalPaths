@@ -8,12 +8,12 @@ namespace PoliticalPaths.Application.Deserialization;
 /// </summary>
 /// <param name="LogicalName"></param>
 /// <param name="RawData"></param>
-/// <param name="FileName"></param>
+/// <param name="FileNames"></param>
 /// <param name="FileType"></param>
 /// <param name="Pipeline"></param>
 public sealed record ImportSourceDefinition(
     [property: JsonPropertyName("logicalName")] string LogicalName,
     [property: JsonPropertyName("rawData")] string RawData,
-    [property: JsonPropertyName("fileName")] string FileName,
+    [property: JsonPropertyName("fileNames")] string[] FileNames,
     [property: JsonPropertyName("fileType")] string FileType,
     [property: JsonPropertyName("pipeline")] string Pipeline);

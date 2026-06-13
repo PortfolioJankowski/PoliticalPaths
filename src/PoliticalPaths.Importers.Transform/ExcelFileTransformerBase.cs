@@ -30,12 +30,14 @@ public abstract class ExcelFileTransformerBase(
         ImportFile file,
         ExcelWorkbookModel workbook,
         PipelineExecutionContext context,
+        IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default);
 
     protected async Task<TransformFileResult> ProcessRowsAsync(
         ImportFile file,
         ExcelWorkbookModel workbook,
         Func<RawRowDto, ImportRow, CancellationToken, Task> rowProcessor,
+        IProgress<TransformationProgress>? progress,
         CancellationToken cancellationToken)
     {
         var transformed = 0;
@@ -46,6 +48,9 @@ public abstract class ExcelFileTransformerBase(
             .Where(r => r.ImportFileId == file.Id)
             .ToListAsync(cancellationToken);
         var rowsMap = rows.ToDictionary(r => (r.SheetName, r.RowNumber));
+
+        var totalRowsCount = workbook.Sheets.Sum(s => s.Rows.Count);
+        var currentProcessed = 0;
 
         foreach (var sheet in workbook.Sheets)
         {
@@ -84,6 +89,11 @@ public abstract class ExcelFileTransformerBase(
                     RecordError(importRow, "Transform", "TRANS_ERR", ex.Message);
                     importRow.Status = ImportRowStatus.Failed;
                     failed++;
+                }
+                finally
+                {
+                    currentProcessed++;
+                    progress?.Report(new TransformationProgress(currentProcessed, totalRowsCount));
                 }
             }
         }

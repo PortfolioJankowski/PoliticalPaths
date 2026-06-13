@@ -13,5 +13,6 @@ public interface IImportTransformer
         ImportFile file,
         ExcelWorkbookModel workbook,
         PipelineExecutionContext context,
+        IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }

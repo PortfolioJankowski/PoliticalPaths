@@ -18,7 +18,10 @@ public sealed class ImportSyncService(
     ITransformationExecutor transformationExecutor,
     ILogger<ImportSyncService> logger) : IImportSyncService
 {
-    public async Task<ImportSyncResult> SyncAllAsync(ImportSyncOptions options, CancellationToken cancellationToken = default)
+    public async Task<ImportSyncResult> SyncAllAsync(
+        ImportSyncOptions options, 
+        IProgress<ImportProgressInfo>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var config = pipelineRegistry.GetImportConfiguration();
 
@@ -35,7 +38,7 @@ public sealed class ImportSyncService(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var summary = await SyncPipelineAsync(context, options, cancellationToken);
+            var summary = await SyncPipelineAsync(context, options, progress, cancellationToken);
 
             summaries.Add(summary);
 
@@ -57,6 +60,7 @@ public sealed class ImportSyncService(
     private async Task<PipelineSyncSummary> SyncPipelineAsync(
         PipelineExecutionContext pipeline,
         ImportSyncOptions options,
+        IProgress<ImportProgressInfo>? progress,
         CancellationToken cancellationToken)
     {
         var batch = await GetOrCreateBatchAsync(pipeline, cancellationToken);
@@ -76,6 +80,7 @@ public sealed class ImportSyncService(
                     source,
                     fileName,
                     options.ForceReimport,
+                    progress,
                     cancellationToken);
 
                 fileStats.Add(result);
@@ -114,6 +119,7 @@ public sealed class ImportSyncService(
       ImportSourceDefinition descriptor,
       string fileName,
       bool forceReimport,
+      IProgress<ImportProgressInfo>? progress,
       CancellationToken cancellationToken)
     {
         var filePath = Path.Combine(
@@ -190,11 +196,18 @@ public sealed class ImportSyncService(
 
         var startedAt = DateTime.UtcNow;
 
+        var innerProgress = progress != null 
+            ? new Progress<TransformationProgress>(p => progress.Report(new ImportProgressInfo(context.PipelineKey, fileName, p.Current, p.Total)))
+            : null;
+
         var transformResult = await RunTransformIfAvailableAsync(
             batch,
             context,
             importFile,
+            innerProgress,
             cancellationToken);
+
+        progress?.Report(new ImportProgressInfo(context.PipelineKey, fileName, importFile.TotalRows, importFile.TotalRows, true));
 
         var finishedAt = DateTime.UtcNow;
 
@@ -209,15 +222,17 @@ public sealed class ImportSyncService(
     }
 
     private async Task<TransformFileResult> RunTransformIfAvailableAsync(
-    ImportBatch batch,
-    PipelineExecutionContext context,
-    ImportFile file,
-    CancellationToken cancellationToken)
+        ImportBatch batch,
+        PipelineExecutionContext context,
+        ImportFile file,
+        IProgress<TransformationProgress>? progress,
+        CancellationToken cancellationToken)
     {
         return await transformationExecutor.ExecuteAsync(
             context,
             batch,
             file,
+            progress,
             cancellationToken);
     }
 

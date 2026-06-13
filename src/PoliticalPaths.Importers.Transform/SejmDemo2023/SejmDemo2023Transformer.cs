@@ -31,6 +31,7 @@ public sealed class SejmDemo2023Transformer(
         ImportFile file,
         ExcelWorkbookModel workbook,
         PipelineExecutionContext context,
+        IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         // Resolve basic election context
@@ -48,7 +49,7 @@ public sealed class SejmDemo2023Transformer(
             {
                 await ProcessCandidateRow(excelRow, importRow, wybory.Id, ct);
             }
-        }, cancellationToken);
+        }, progress, cancellationToken);
 
         await Db.SaveChangesAsync(cancellationToken);
         return result;

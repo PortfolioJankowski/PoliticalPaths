@@ -18,7 +18,8 @@ public sealed class TransformationExecutor(
         PipelineExecutionContext context,
         ImportBatch batch,
         ImportFile file,
-        CancellationToken cancellationToken)
+        IProgress<TransformationProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         if (!_transformers.TryGetValue(
                 context.PipelineKey,
@@ -34,6 +35,7 @@ public sealed class TransformationExecutor(
             file,
             workbook,
             context,
+            progress,
             cancellationToken);
     }
 }

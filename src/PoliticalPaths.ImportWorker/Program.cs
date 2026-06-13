@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +11,7 @@ using PoliticalPaths.Infrastructure.Persistence;
 using PoliticalPaths.Shared.Paths;
 using Serilog;
 using Serilog.Formatting.Compact;
+using Spectre.Console;
 
 var host = Host.CreateDefaultBuilder(args)
     .UseContentRoot(AppContext.BaseDirectory)
@@ -69,28 +70,89 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
     var seedIfEmpty = !args.Contains("--no-seed");
     var force = args.Contains("--force");
 
-    Console.WriteLine($"Repo root: {repoRoot}");
-    Console.WriteLine($"Inbox:     {inbox}");
-    Console.WriteLine();
+    AnsiConsole.MarkupLine($"[blue]Repo root:[/] {repoRoot}");
+    AnsiConsole.MarkupLine($"[blue]Inbox:[/]     {inbox}");
+    AnsiConsole.WriteLine();
 
-    var result = await syncService.SyncAllAsync(
-        new ImportSyncOptions(inbox, seedIfEmpty, force));
+    ImportSyncResult result = null!;
+
+    await AnsiConsole.Progress()
+        .AutoClear(false)
+        .HideCompleted(false)
+        .Columns(new ProgressColumn[] 
+        {
+            new TaskDescriptionColumn(),
+            new ProgressBarColumn(),
+            new PercentageColumn(),
+            new RemainingTimeColumn(),
+            new SpinnerColumn(),
+        })
+        .StartAsync(async ctx =>
+        {
+            var progressMap = new Dictionary<string, ProgressTask>();
+
+            var progressReporter = new Progress<ImportProgressInfo>(info =>
+            {
+                var key = $"{info.PipelineKey}_{info.FileName}";
+                if (!progressMap.TryGetValue(key, out var task))
+                {
+                    task = ctx.AddTask($"[grey]{info.PipelineKey}[/] {info.FileName}", autoStart: true, maxValue: info.TotalRows > 0 ? info.TotalRows : 100);
+                    progressMap[key] = task;
+                }
+
+                if (info.TotalRows > 0 && task.MaxValue != info.TotalRows)
+                {
+                    task.MaxValue = info.TotalRows;
+                }
+
+                task.Value = info.CurrentRow;
+                
+                if (info.IsCompleted)
+                {
+                    task.StopTask();
+                }
+            });
+
+            result = await syncService.SyncAllAsync(
+                new ImportSyncOptions(inbox, seedIfEmpty, force),
+                progressReporter);
+        });
 
     var reportService = scope.ServiceProvider.GetRequiredService<IImportReportService>();
-    await reportService.GenerateReportAsync(result);
+    await reportService.GenerateReportAsync(result!);
 
-    foreach (var pipeline in result.Pipelines)
+    AnsiConsole.WriteLine();
+    var table = new Table().Border(TableBorder.Rounded);
+    table.AddColumn("Pipeline");
+    table.AddColumn("Batch ID");
+    table.AddColumn(new TableColumn("Imported").RightAligned());
+    table.AddColumn(new TableColumn("Skipped").RightAligned());
+    table.AddColumn(new TableColumn("Raw Rows").RightAligned());
+    table.AddColumn(new TableColumn("Transformed").RightAligned());
+    table.AddColumn(new TableColumn("Failed").RightAligned());
+    table.AddColumn("Status");
+
+    foreach (var pipeline in result!.Pipelines)
     {
-        Console.WriteLine($"Pipeline [{pipeline.PipelineKey}] batch={pipeline.BatchId}");
-        Console.WriteLine($"  imported={pipeline.FilesImported}, skipped={pipeline.FilesSkipped}, rawRows={pipeline.RowsRaw}, transformed={pipeline.RowsTransformed}, failed={pipeline.RowsFailed}");
-        if (pipeline.TransformSkippedNoTransformer)
-            Console.WriteLine("  transform: brak transformera (tylko RAW)");
-        else if (pipeline.RowsFailed > 0)
-            Console.WriteLine("  transform: część wierszy FAILED — patrz TransformationErrors + logi");
-        Console.WriteLine();
+        var status = "[green]OK[/]";
+        if (pipeline.TransformSkippedNoTransformer) status = "[yellow]RAW ONLY[/]";
+        else if (pipeline.RowsFailed > 0) status = "[red]FAILED[/]";
+
+        table.AddRow(
+            pipeline.PipelineKey,
+            pipeline.BatchId.ToString().Substring(0, 8) + "...",
+            pipeline.FilesImported.ToString(),
+            pipeline.FilesSkipped.ToString(),
+            pipeline.RowsRaw.ToString(),
+            pipeline.RowsTransformed.ToString(),
+            pipeline.RowsFailed.ToString(),
+            status
+        );
     }
 
-    Console.WriteLine($"Total: pipelines={result.PipelinesProcessed}, files imported={result.FilesImported}, skipped={result.FilesSkipped}, raw rows={result.TotalRowsRaw}");
+    AnsiConsole.Write(table);
+
+    AnsiConsole.MarkupLine($"[bold blue]Total:[/] pipelines={result.PipelinesProcessed}, files={result.FilesImported}, rows={result.TotalRowsRaw}");
     return 0;
 }
 

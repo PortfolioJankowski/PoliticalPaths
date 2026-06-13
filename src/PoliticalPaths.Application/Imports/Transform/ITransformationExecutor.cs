@@ -1,4 +1,5 @@
-﻿using PoliticalPaths.Application.Pipelines;
+﻿using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 
@@ -10,5 +11,7 @@ public interface ITransformationExecutor
         PipelineExecutionContext context,
         ImportBatch batch,
         ImportFile file,
-        CancellationToken cancellationToken);
+        IProgress<TransformationProgress>? progress = null,
+        CancellationToken cancellationToken = default);
+
 }

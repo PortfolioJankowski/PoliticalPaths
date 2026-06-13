@@ -2,8 +2,18 @@ namespace PoliticalPaths.Application.Abstractions.Imports;
 
 public interface IImportSyncService
 {
-    Task<ImportSyncResult> SyncAllAsync(ImportSyncOptions options, CancellationToken cancellationToken = default);
+    Task<ImportSyncResult> SyncAllAsync(
+        ImportSyncOptions options, 
+        IProgress<ImportProgressInfo>? progress = null,
+        CancellationToken cancellationToken = default);
 }
+
+public record ImportProgressInfo(
+    string PipelineKey,
+    string FileName,
+    int CurrentRow,
+    int TotalRows,
+    bool IsCompleted = false);
 
 public sealed record ImportSyncOptions(
     string InboxRoot,

@@ -17,20 +17,20 @@ public interface IAppDbContext
     DbSet<TransformationError> TransformationErrors { get; }
 
     // Domena
-    DbSet<Politycy> Politycy { get; }
-    DbSet<Formacje> Formacje { get; }
-    DbSet<Kluby> Kluby { get; }
-    DbSet<KlubyCzlonkowstwo> KlubyCzlonkowstwo { get; }
-    DbSet<Wybory> MapaWyborow { get; }
-    DbSet<RodzajeWyborow> SlownikWyborow { get; }
+    DbSet<Polityk> Politycy { get; }
+    DbSet<Klub> Kluby { get; }
+    DbSet<KlubCzlonkostwo> KlubCzlonkostwa { get; }
+    DbSet<Wybory> Wybory { get; }
+    DbSet<RodzajeWyborow> RodzajeWyborow { get; }
     DbSet<OkregWyborczy> OkregWyborczy { get; }
     DbSet<LudnoscOkregow> LudnoscOkregow { get; }
-    DbSet<KomitetyWyborcze> KomitetyWyborcze { get; }
+    DbSet<KomitetWyborczy> KomitetyWyborcze { get; }
     DbSet<ListaWyborcza> ListaWyborcza { get; }
-    DbSet<StartyWyborcze> StartyWyborcze { get; }
+    DbSet<StartWyborczy> StartyWyborcze { get; }
     DbSet<WynikiWyborow> WynikiWyborow { get; }
     DbSet<Kadencja> Kadencje { get; }
     DbSet<Mandat> Mandaty { get; }
+    DbSet<ZdarzenieMandatowe> ZdarzeniaMandatowe { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

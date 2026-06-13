@@ -21,34 +21,40 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var val = await GetFromCache<RodzajeWyborow>(key, ct);
         if (val != null) return val;
 
-        val = await db.SlownikWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
+        val = await db.RodzajeWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
         if (val == null)
         {
             val = new RodzajeWyborow { Id = Guid.NewGuid(), Nazwa = nazwa, Poziom = poziom };
-            db.SlownikWyborow.Add(val);
+            db.RodzajeWyborow.Add(val);
         }
 
         await SetToCache(key, val, ct);
         return val;
     }
 
-    public async Task<Wybory> GetOrCreateWyboryAsync(Guid rodzajId, DateOnly data, CancellationToken ct = default)
+    public async Task<Wybory> GetOrCreateWyboryAsync(Guid rodzajId, DateOnly? dataOgloszenia, DateOnly dataWyborow, OrdynacjaWyborcza ordynacja = OrdynacjaWyborcza.Proporcjonalna, CancellationToken ct = default)
     {
-        var key = $"wybory_{rodzajId}_{data}";
+        var key = $"wybory_{rodzajId}_{dataWyborow}";
         var val = await GetFromCache<Wybory>(key, ct);
         if (val != null) return val;
 
-        val = await db.MapaWyborow.FirstOrDefaultAsync(w => w.RodzajWyborowId == rodzajId && w.DataWyborow == data, ct);
+        val = await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == rodzajId && w.DataWyborow == dataWyborow, ct);
         if (val == null)
         {
             val = new Wybory
             {
                 Id = Guid.NewGuid(),
                 RodzajWyborowId = rodzajId,
-                DataWyborow = data,
-                Ordynacja = Domain.Enums.OrdynacjaWyborcza.Proporcjonalna // Default for Sejm
+                DataWyborow = dataWyborow,
+                Ordynacja = ordynacja // Default for Sejm
             };
-            db.MapaWyborow.Add(val);
+
+            if (dataOgloszenia.HasValue)
+            {
+                val.DataOgloszenia = dataOgloszenia.Value;
+            }
+
+            db.Wybory.Add(val);
         }
 
         await SetToCache(key, val, ct);
@@ -98,16 +104,16 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         }
     }
 
-    public async Task<KomitetyWyborcze> GetOrCreateKomitetAsync(string nazwa, CancellationToken ct = default)
+    public async Task<KomitetWyborczy> GetOrCreateKomitetAsync(string nazwa, CancellationToken ct = default)
     {
         var key = $"komitet_{nazwa}";
-        var val = await GetFromCache<KomitetyWyborcze>(key, ct);
+        var val = await GetFromCache<KomitetWyborczy>(key, ct);
         if (val != null) return val;
 
         val = await db.KomitetyWyborcze.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
         if (val == null)
         {
-            val = new KomitetyWyborcze { Id = Guid.NewGuid(), Nazwa = nazwa };
+            val = new KomitetWyborczy { Id = Guid.NewGuid(), Nazwa = nazwa };
             db.KomitetyWyborcze.Add(val);
         }
 
@@ -143,35 +149,36 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
-    public async Task<Formacje> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default)
+    public async Task<Klub> GetOrCreatePartiaAsync(string nazwa,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(nazwa) || nazwa.Equals("bezpartyjny", StringComparison.OrdinalIgnoreCase)) return null!;
 
         var key = $"partia_{nazwa}";
-        var val = await GetFromCache<Formacje>(key, ct);
+        var val = await GetFromCache<Klub>(key, ct);
         if (val != null) return val;
 
-        val = await db.Formacje.FirstOrDefaultAsync(f => f.Nazwa == nazwa, ct);
+        val = await db.Kluby.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
         if (val == null)
         {
-            val = new Formacje { Id = Guid.NewGuid(), Nazwa = nazwa };
-            db.Formacje.Add(val);
+            val = new Klub { Id = Guid.NewGuid(), Nazwa = nazwa };
+            db.Kluby.Add(val);
         }
 
         await SetToCache(key, val, ct);
         return val;
     }
 
-    public async Task<Politycy> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default)
+    public async Task<Polityk> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default)
     {
         var key = $"polityk_{nazwisko}_{imie}";
-        var val = await GetFromCache<Politycy>(key, ct);
+        var val = await GetFromCache<Polityk>(key, ct);
         if (val != null) return val;
 
         val = await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == nazwisko && p.Imie == imie, ct);
         if (val == null)
         {
-            val = new Politycy { Id = Guid.NewGuid(), Imie = imie, Nazwisko = nazwisko };
+            val = new Polityk { Id = Guid.NewGuid(), Imie = imie, Nazwisko = nazwisko };
             db.Politycy.Add(val);
         }
 

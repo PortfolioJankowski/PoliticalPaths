@@ -1,9 +1,7 @@
-﻿using System.Text.Json.Serialization;
-
-namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
+﻿namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 
 public sealed class ImportConfiguration
 {
-    [property: JsonPropertyName("data")]
-    public Dictionary<string, Dictionary<string, List<ImportSourceDefinition>>> Data { get; init; } = new();
+    //pipelineKey -> List<ImportSourceDefinition>
+    public Dictionary<string, List<ImportSourceDefinition>> Data { get; init; } = new();
 }

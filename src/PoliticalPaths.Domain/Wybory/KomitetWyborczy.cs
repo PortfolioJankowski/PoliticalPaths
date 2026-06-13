@@ -1,6 +1,6 @@
 namespace PoliticalPaths.Domain.Wybory;
 
-public sealed class KomitetyWyborcze
+public sealed class KomitetWyborczy
 {
     public Guid Id { get; set; }
     public string Nazwa { get; set; } = default!;

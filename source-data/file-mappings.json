@@ -1,16 +1,14 @@
-{
-    "data" : {
-        "Sejm": {
-            "2023": [
-            {
-                "pipeline": "Sejm2023",
-                "logicalNames": ["Kandydaci", "Okregi"],
-                "rawData": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
-                "fileNames": ["okregi_sejm_utf8.xlsx", "kandydaci_sejm_utf8.xlsx"],
-                "fileType": "xlsx",
-                "_comment": "Wyniki głosowania na kandydatów po okręgach Sejm oraz plik z okręgami wyborczymi."
-            }
-            ]
+ {
+    "Sejm2023":[
+        {
+            "logicalNames": ["Kandydaci", "Okregi"],
+            "rawData": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
+            "fileNames": ["okregi_sejm_utf8.xlsx", "kandydaci_sejm_utf8.xlsx"],
+            "fileType": "xlsx",
+            "electionDate": "2023-10-15",
+            "announcementDate": "2023-10-15",
+            "electionRound": "1",
+            "name": "Wybory do Sejmu 2023"
         }
-    }
-}
+    ]
+ }   

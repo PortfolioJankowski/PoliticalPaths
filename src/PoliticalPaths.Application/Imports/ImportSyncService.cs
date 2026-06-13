@@ -95,13 +95,6 @@ public sealed class ImportSyncService(
      
         await db.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation(
-            "Pipeline {PipelineKey}: imported={Imported}, skipped={Skipped}, rawRows={Raw}",
-            pipeline.PipelineKey,
-            summary.FilesImported,
-            summary.FilesSkipped,
-            summary.RowsRaw);
-
         return new PipelineSyncSummary(
             pipeline.PipelineKey,
             batch.Id,

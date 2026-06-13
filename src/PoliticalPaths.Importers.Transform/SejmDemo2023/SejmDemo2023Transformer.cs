@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Application.Imports.ExcelDto;
@@ -17,7 +18,8 @@ public sealed class SejmDemo2023Transformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
     ITransformationErrorRecorder errorRecorder,
-    ILogger<SejmDemo2023Transformer> logger)
+    ILogger<SejmDemo2023Transformer> logger,
+    IClubMembershipService clubService)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
     private const string ElectionName = "Sejm Rzeczypospolitej Polskiej";
@@ -99,13 +101,17 @@ public sealed class SejmDemo2023Transformer(
         }
 
         var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
+        if (partia != null)
+        {
+            await clubService.UpdateMembershipAsync(partia.Id, komitet.Id, wyboryId, ct);
+        }
 
         var parts = nazwiskoImiona.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var nazwisko = parts.Length > 0 ? parts[0] : UnknownValue;
         var imie = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : UnknownValue;
         var polityk = await entityResolver.GetOrCreatePolitykAsync(imie, nazwisko, ct);
 
-        var start = new StartyWyborcze
+        var start = new StartWyborczy
         {
             Id = Guid.NewGuid(),
             PolitykId = polityk.Id,
@@ -126,7 +132,7 @@ public sealed class SejmDemo2023Transformer(
         };
         Db.WynikiWyborow.Add(wynik);
 
-        importRow.DomainEntityType = nameof(StartyWyborcze);
+        importRow.DomainEntityType = nameof(StartWyborczy);
         importRow.DomainEntityId = start.Id.ToString();
     }
 

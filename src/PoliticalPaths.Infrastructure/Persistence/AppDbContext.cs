@@ -19,27 +19,28 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TransformationError> TransformationErrors => Set<TransformationError>();
 
     // Domena
-    public DbSet<Politycy> Politycy => Set<Politycy>();
-    public DbSet<Formacje> Formacje => Set<Formacje>();
-    public DbSet<Kluby> Kluby => Set<Kluby>();
-    public DbSet<KlubyCzlonkowstwo> KlubyCzlonkowstwo => Set<KlubyCzlonkowstwo>();
-    public DbSet<Wybory> MapaWyborow => Set<Wybory>();
-    public DbSet<RodzajeWyborow> SlownikWyborow => Set<RodzajeWyborow>();
+    public DbSet<Polityk> Politycy => Set<Polityk>();
+    public DbSet<Klub> Formacje => Set<Klub>();
+    public DbSet<Klub> Kluby => Set<Klub>();
+    public DbSet<KlubCzlonkostwo> KlubCzlonkostwa => Set<KlubCzlonkostwo>();
+    public DbSet<Wybory> Wybory => Set<Wybory>();
+    public DbSet<RodzajeWyborow> RodzajeWyborow => Set<RodzajeWyborow>();
     public DbSet<OkregWyborczy> OkregWyborczy => Set<OkregWyborczy>();
     public DbSet<LudnoscOkregow> LudnoscOkregow => Set<LudnoscOkregow>();
-    public DbSet<KomitetyWyborcze> KomitetyWyborcze => Set<KomitetyWyborcze>();
+    public DbSet<KomitetWyborczy> KomitetyWyborcze => Set<KomitetWyborczy>();
     public DbSet<ListaWyborcza> ListaWyborcza => Set<ListaWyborcza>();
-    public DbSet<StartyWyborcze> StartyWyborcze => Set<StartyWyborcze>();
+    public DbSet<StartWyborczy> StartyWyborcze => Set<StartWyborczy>();
     public DbSet<WynikiWyborow> WynikiWyborow => Set<WynikiWyborow>();
     public DbSet<Kadencja> Kadencje => Set<Kadencja>();
     public DbSet<Mandat> Mandaty => Set<Mandat>();
+    public DbSet<ZdarzenieMandatowe> ZdarzeniaMandatowe => Set<ZdarzenieMandatowe>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         // Politycy
-        modelBuilder.Entity<Politycy>(b =>
+        modelBuilder.Entity<Polityk>(b =>
         {
             b.Property(x => x.Imie).HasMaxLength(100);
             b.Property(x => x.Nazwisko).HasMaxLength(100);
@@ -63,6 +64,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             b.Property(x => x.Poziom).HasConversion<int>();
         });
 
+        modelBuilder.Entity<Wybory>()
+            .HasOne(x => x.Rodzaj)
+            .WithMany(z => z.Wybory)
+            .HasForeignKey(x => x.RodzajWyborowId);
+
         modelBuilder.Entity<OkregWyborczy>(b =>
         {
             b.HasKey(x => x.Id);
@@ -73,18 +79,61 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             b.HasKey(x => new { x.OkregId, x.RokWyborow });
         });
 
+        modelBuilder.Entity<LudnoscOkregow>()
+            .HasOne(x => x.Okreg)
+            .WithMany(w => w.Ludnosc)
+            .HasForeignKey(x => x.OkregId);
+
         modelBuilder.Entity<WynikiWyborow>(b =>
         {
             b.HasKey(x => x.StartId);
         });
 
-        modelBuilder.Entity<StartyWyborcze>(b =>
+        modelBuilder.Entity<StartWyborczy>(b =>
         {
             b.HasKey(x => x.Id);
             b.Property(x => x.Zawod).HasMaxLength(200);
             b.Property(x => x.Wyksztalcenie).HasMaxLength(200);
             b.Property(x => x.MiejsceZamieszkania).HasMaxLength(200);
         });
+
+        modelBuilder.Entity<StartWyborczy>()
+            .HasOne(x => x.Polityk)
+            .WithMany(p => p.StartyWyborcze)
+            .HasForeignKey(x => x.PolitykId);
+
+        modelBuilder.Entity<KlubCzlonkostwo>(b =>
+        {
+            b.HasKey(x => x.Id);
+
+            b.Property(x => x.PolitykId)
+                .IsRequired();
+
+            b.Property(x => x.KlubId)
+                .IsRequired();
+
+            b.Property(x => x.WyboryId)
+                .IsRequired();
+
+            // FK -> Polityk
+            b.HasOne<Polityk>()
+                .WithMany(x => x.Czlonkostwa)
+                .HasForeignKey(x => x.PolitykId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // FK -> Klub
+            b.HasOne<Klub>()
+                .WithMany(x => x.Czlonkostwa)
+                .HasForeignKey(x => x.KlubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // FK -> Wybory
+            b.HasOne<Wybory>()
+                .WithMany(x => x.Czlonkostwa)
+                .HasForeignKey(x => x.WyboryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
 
         base.OnModelCreating(modelBuilder);
     }

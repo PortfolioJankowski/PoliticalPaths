@@ -1,6 +1,9 @@
+using PoliticalPaths.Domain.Formacje;
+using PoliticalPaths.Domain.StartyWyborcze;
+
 namespace PoliticalPaths.Domain.Politycy;
 
-public sealed class Politycy
+public sealed class Polityk
 {
     public Guid Id { get; set; }
     public string Imie { get; set; } = default!;
@@ -10,4 +13,7 @@ public sealed class Politycy
     public string? Email { get; set; }
 
     public string? InformacjeDodatkowe { get; set; }
+    public ICollection<StartWyborczy> StartyWyborcze { get; set; } = new List<StartWyborczy>();
+    public ICollection<KlubCzlonkostwo> Czlonkostwa { get; set; } = new List<KlubCzlonkostwo>();
+
 }

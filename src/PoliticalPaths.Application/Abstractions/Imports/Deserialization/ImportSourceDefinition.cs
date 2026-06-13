@@ -6,14 +6,16 @@ namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 /// Struktura do deserializacji pliku file-mappings.json, który zawiera mapowanie pomiędzy nazwami logicznymi źródeł danych, 
 /// a ich rzeczywistą zawartością, nazwą pliku, typem oraz przypisanym pipeline'em.
 /// </summary>
-/// <param name="LogicalName"></param>
-/// <param name="RawData"></param>
-/// <param name="FileNames"></param>
-/// <param name="FileType"></param>
-/// <param name="Pipeline"></param>
+
 public sealed record ImportSourceDefinition(
-    [property: JsonPropertyName("logicalNames")] string[] LogicalNames,
-    [property: JsonPropertyName("rawData")] string RawData,
-    [property: JsonPropertyName("fileNames")] string[] FileNames,
-    [property: JsonPropertyName("fileType")] string FileType,
-    [property: JsonPropertyName("pipeline")] string Pipeline);
+    [property: JsonPropertyName("NazwyLogiczne")] string[] LogicalNames,
+    [property: JsonPropertyName("Link")] string RawData,
+    [property: JsonPropertyName("NazwyPlikow")] string[] FileNames,
+    [property: JsonPropertyName("TypPlikow")] string FileType,
+    [property: JsonPropertyName("Organ")] string Assembly,
+    [property: JsonPropertyName("DataWyborow")] DateOnly ElectionDate,
+    [property: JsonPropertyName("DataOgloszenia")] DateOnly AnnouncementDate,
+    [property: JsonPropertyName("Tura")] string Round,
+    [property: JsonPropertyName("CzyUzupelniajace")] bool IsSupplementary = false);
+
+

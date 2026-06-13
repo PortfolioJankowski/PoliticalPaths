@@ -7,13 +7,10 @@ namespace PoliticalPaths.Application.Pipelines;
 public interface IPipelineRegistry
 {
     ImportConfiguration GetImportConfiguration();
-    PipelineDefinition GetByPipelineKey(string pipelineKey);
-
 }
 
 public sealed class PipelineRegistry : IPipelineRegistry
 {
-    private readonly IReadOnlyList<PipelineDefinition> _pipelines;
     private readonly ImportConfiguration _config;
 
     public PipelineRegistry()
@@ -32,45 +29,7 @@ public sealed class PipelineRegistry : IPipelineRegistry
             throw new InvalidOperationException($"Failed to deserialize import configuration from '{mappingsFilePath}'.");
         }
         _config = config;
-
-        _pipelines = BuildPipelines(config);
     }
 
     ImportConfiguration IPipelineRegistry.GetImportConfiguration() => _config;
-
-    public PipelineDefinition GetByPipelineKey(string pipelineKey)
-    {
-        var found = _pipelines.FirstOrDefault(p => p.PipelineKey.Equals(pipelineKey, StringComparison.OrdinalIgnoreCase));
-        if (found == null)
-        {
-            throw new InvalidOperationException($"Unknown pipeline key '{pipelineKey}'.");
-        }
-
-        return found;
-    }
-
-    private static IReadOnlyList<PipelineDefinition> BuildPipelines(
-    ImportConfiguration config)
-    {
-        var allSources = new List<ImportSourceDefinition>();
-
-        foreach (var category in config.Data)
-        {
-            foreach (var year in category.Value)
-            {
-                foreach (var source in year.Value)
-                {
-                    allSources.Add(source);
-                }
-            }
-        }
-
-        return allSources
-            .GroupBy(x => x.Pipeline)
-            .Select(g => new PipelineDefinition(
-                PipelineKey: g.Key,
-                Sources: g.ToList()))
-            .ToList();
-    }
-
 }

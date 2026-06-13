@@ -8,4 +8,6 @@ public sealed class OkregWyborczy
     public int LiczbaMandatow { get; set; }
     public int LiczbaList { get; set; }
     public int LiczbaKandydatow { get; set; }
+
+    public ICollection<LudnoscOkregow> Ludnosc { get; set; } = new List<LudnoscOkregow>();
 }

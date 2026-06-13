@@ -1,4 +1,4 @@
-﻿using PoliticalPaths.Application.Abstractions.Imports;
+﻿using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 
 namespace PoliticalPaths.Application.Pipelines;
 

@@ -1,7 +1,6 @@
-﻿using PoliticalPaths.Application.Deserialization;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace PoliticalPaths.Application.Abstractions.Imports;
+namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 
 public sealed class ImportConfiguration
 {

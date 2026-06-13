@@ -12,7 +12,7 @@ using PoliticalPaths.Infrastructure.Persistence;
 namespace PoliticalPaths.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260607163739_InitialMigration")]
+    [Migration("20260613095145_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -181,10 +181,10 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .HasMaxLength(1024)
                         .HasColumnType("varchar(1024)");
 
-                    b.Property<string>("LogicalName")
+                    b.Property<string>("LogicalNames")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
 
                     b.Property<DateTime?>("RawImportCompletedAt")
                         .HasColumnType("datetime(6)");
@@ -215,8 +215,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("LogicalName");
 
                     b.HasIndex("ImportBatchId", "Sha256");
 

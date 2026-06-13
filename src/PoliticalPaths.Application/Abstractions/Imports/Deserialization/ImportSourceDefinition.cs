@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PoliticalPaths.Application.Deserialization;
+namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 
 /// <summary>
 /// Struktura do deserializacji pliku file-mappings.json, który zawiera mapowanie pomiędzy nazwami logicznymi źródeł danych, 
@@ -12,7 +12,7 @@ namespace PoliticalPaths.Application.Deserialization;
 /// <param name="FileType"></param>
 /// <param name="Pipeline"></param>
 public sealed record ImportSourceDefinition(
-    [property: JsonPropertyName("logicalName")] string LogicalName,
+    [property: JsonPropertyName("logicalNames")] string[] LogicalNames,
     [property: JsonPropertyName("rawData")] string RawData,
     [property: JsonPropertyName("fileNames")] string[] FileNames,
     [property: JsonPropertyName("fileType")] string FileType,

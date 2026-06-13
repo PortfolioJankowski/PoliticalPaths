@@ -290,7 +290,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ImportBatchId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LogicalName = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false)
+                    LogicalNames = table.Column<string>(type: "varchar(512)", maxLength: 512, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     StoragePath = table.Column<string>(type: "varchar(1024)", maxLength: 1024, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -415,11 +415,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "IX_ImportFiles_ImportBatchId_Sha256",
                 table: "ImportFiles",
                 columns: new[] { "ImportBatchId", "Sha256" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ImportFiles_LogicalName",
-                table: "ImportFiles",
-                column: "LogicalName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportRows_ImportFileId_SheetName_RowNumber",

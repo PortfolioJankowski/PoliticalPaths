@@ -48,19 +48,25 @@ public sealed class ExcelProcessor : IExcelProcessor
         foreach (var xlRow in range.Rows().Skip(1))
         {
             var columns = new Dictionary<string, string?>();
+            var values = new List<string?>();
+
             for (int col = 1; col <= columnCount; col++)
             {
                 var header = headers.ElementAtOrDefault(col - 1) ?? $"Column{col}";
                 var cell = xlRow.Cell(col);
                 var cellValue = cell.Value.ToString();
-                columns[header] = string.IsNullOrWhiteSpace(cellValue) ? null : cellValue.Trim();
+                var val = string.IsNullOrWhiteSpace(cellValue) ? null : cellValue.Trim();
+                
+                columns[header] = val;
+                values.Add(val);
             }
 
             rows.Add(new RawRowDto(
                 worksheet.Name,
                 sheetIndex,
                 xlRow.RowNumber(),
-                columns));
+                columns,
+                values));
         }
 
         return new ExcelSheetModel(

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Abstractions.Persistence;
-using PoliticalPaths.Application.Deserialization;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
@@ -175,7 +175,7 @@ public sealed class ImportSyncService(
             {
                 Id = Guid.NewGuid(),
                 ImportBatchId = batch.Id,
-                LogicalName = descriptor.LogicalName,
+                LogicalNames = descriptor.LogicalNames,
                 StoragePath = Path.GetFullPath(filePath),
                 Sha256 = checksum.Sha256,
                 FileSizeBytes = checksum.FileSizeBytes,

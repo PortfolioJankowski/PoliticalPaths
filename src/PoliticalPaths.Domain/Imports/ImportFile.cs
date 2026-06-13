@@ -6,12 +6,12 @@ public class ImportFile
     public Guid ImportBatchId { get; set; }
     public ImportBatch ImportBatch { get; set; } = null!;
 
-    public string LogicalName { get; set; } = null!;
+    public string[] LogicalNames { get; set; } = [];
     public string StoragePath { get; set; } = null!;
     public string Sha256 { get; set; } = null!;
     public long FileSizeBytes { get; set; }
     public string ContentType { get; set; } = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    public string DataSourceType { get; set; }
+    public string DataSourceType { get; set; } = null!;
     public string FormatVersion { get; set; } = "v1";
 
     public ImportFileStatus Status { get; set; } = ImportFileStatus.Discovered;

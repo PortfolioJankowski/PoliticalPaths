@@ -12,7 +12,7 @@ using PoliticalPaths.Domain.Wybory;
 
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
-[ImportTransformer("Sejm2023")]
+[ImportTransformer("Sejm2023", "sejm-2023-okregi", "sejm-2023-kandydaci")]
 public sealed class SejmDemo2023Transformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
@@ -20,6 +20,11 @@ public sealed class SejmDemo2023Transformer(
     ILogger<SejmDemo2023Transformer> logger)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
+    private const string ElectionName = "Sejm Rzeczypospolitej Polskiej";
+    private const string DistrictFileMarker = "okregi";
+    private static readonly string[] TrueValues = ["tak", "true", "1"];
+    private const string UnknownValue = "Nieznane";
+
     public override string PipelineKey => "Sejm2023";
 
     public override async Task<TransformFileResult> TransformFileAsync(
@@ -29,57 +34,24 @@ public sealed class SejmDemo2023Transformer(
         CancellationToken cancellationToken = default)
     {
         // Resolve basic election context
-        var slownik = await entityResolver.GetOrCreateSlownikWyborowAsync("Sejm Rzeczypospolitej Polskiej", ct: cancellationToken);
+        var slownik = await entityResolver.GetOrCreateSlownikWyborowAsync(ElectionName, ct: cancellationToken);
         if (!int.TryParse(context.ElectionYear, out var rok)) rok = 2023;
         var wybory = await entityResolver.GetOrCreateWyboryAsync(slownik.Id, new DateOnly(rok, 10, 15), cancellationToken);
 
-        var transformed = 0;
-        var failed = 0;
-        var warnings = 0;
-
-        //TODO -> tu trzeba to troszkę poczyścić
-        // Czy to ImportRows jest git?
-        // Może bardziej generyczna metoda w klasie bazowej typu Iterate itd...
-        // Wywalić wszystkie magic stringi do constów
-        // Templatka razorowa w osobnym pliku musi być!
-        var rows = await Db.ImportRows
-            .Where(r => r.ImportFileId == file.Id)
-            .ToListAsync(cancellationToken);
-        var rowsMap = rows.ToDictionary(r => (r.SheetName, r.RowNumber));
-
-        foreach (var sheet in workbook.Sheets)
+        var result = await ProcessRowsAsync(file, workbook, async (excelRow, importRow, ct) =>
         {
-            foreach (var excelRow in sheet.Rows)
+            if (file.StoragePath.Contains(DistrictFileMarker))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!rowsMap.TryGetValue((sheet.Name, excelRow.RowNumber), out var importRow)) continue;
-
-                try
-                {
-                    if (file.StoragePath.Contains("okregi"))
-                    {
-                        await ProcessDistrictRow(excelRow, importRow, wybory.Id, rok, cancellationToken);
-                    }
-                    else
-                    {
-                        await ProcessCandidateRow(excelRow, importRow, wybory.Id, cancellationToken);
-                    }
-
-                    importRow.Status = ImportRowStatus.Transformed;
-                    transformed++;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error transforming row {Row} in file {File}", excelRow.RowNumber, file.LogicalName);
-                    RecordError(importRow, "Transform", "TRANS_ERR", ex.Message);
-                    importRow.Status = ImportRowStatus.Failed;
-                    failed++;
-                }
+                await ProcessDistrictRow(excelRow, importRow, wybory.Id, rok, ct);
             }
-        }
+            else
+            {
+                await ProcessCandidateRow(excelRow, importRow, wybory.Id, ct);
+            }
+        }, cancellationToken);
 
         await Db.SaveChangesAsync(cancellationToken);
-        return new TransformFileResult(transformed, failed, warnings);
+        return result;
     }
 
     private async Task ProcessDistrictRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, int rok, CancellationToken ct)
@@ -88,11 +60,13 @@ public sealed class SejmDemo2023Transformer(
         var liczbaMandatow = ParseInt(excelRow, DistrictsHeaders.LiczbaMandatów) ?? 0;
         var mieszkancy = ParseInt(excelRow, DistrictsHeaders.LiczbaMieszkańców) ?? 0;
         var uprawnieni = ParseInt(excelRow, DistrictsHeaders.LiczbaWyborców) ?? 0;
+        var liczbaList = ParseInt(excelRow, DistrictsHeaders.LiczbaList);
+        var liczbaKandydatow = ParseInt(excelRow, DistrictsHeaders.LiczbaKandydatow);
 
         if (nrOkregu == null) throw new Exception("Brak numeru okręgu");
 
         var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, wyboryId, ct);
-        await entityResolver.UpdateOkregDetailsAsync(okreg.Id, liczbaMandatow, ct: ct);
+        await entityResolver.UpdateOkregDetailsAsync(okreg.Id, liczbaMandatow, liczbaList, liczbaKandydatow, ct: ct);
         await entityResolver.GetOrCreateLudnoscOkregowAsync(okreg.Id, rok, mieszkancy, uprawnieni, ct);
 
         importRow.DomainEntityType = nameof(OkregWyborczy);
@@ -104,11 +78,11 @@ public sealed class SejmDemo2023Transformer(
         var nrOkregu = ParseInt(excelRow, CandidatesHeaders.NrOkręgu);
         var nrListy = ParseInt(excelRow, CandidatesHeaders.NrListy);
         var pozycja = ParseInt(excelRow, CandidatesHeaders.PozycjaNaLiście);
-        var nazwiskoImiona = GetVal(excelRow, CandidatesHeaders.NazwiskoIImiona);
-        var komitetNazwa = GetVal(excelRow, CandidatesHeaders.NazwaKomitetu);
-        var partiaNazwa = GetVal(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
+        var nazwiskoImiona = GetValue(excelRow, CandidatesHeaders.NazwiskoIImiona);
+        var komitetNazwa = GetValue(excelRow, CandidatesHeaders.NazwaKomitetu);
+        var partiaNazwa = GetValue(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
         var glosy = ParseInt(excelRow, CandidatesHeaders.LiczbaGłosów) ?? 0;
-        var czyMandat = GetVal(excelRow, CandidatesHeaders.CzyPrzyznanoMandat)?.ToLower() is "tak" or "true" or "1";
+        var czyMandat = ParseBool(excelRow, CandidatesHeaders.CzyPrzyznanoMandat, TrueValues);
 
         if (nrOkregu == null || nazwiskoImiona == null || komitetNazwa == null)
             throw new Exception("Brak wymaganych danych kandydata");
@@ -126,8 +100,8 @@ public sealed class SejmDemo2023Transformer(
         var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
 
         var parts = nazwiskoImiona.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var nazwisko = parts.Length > 0 ? parts[0] : "Nieznane";
-        var imie = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : "Nieznane";
+        var nazwisko = parts.Length > 0 ? parts[0] : UnknownValue;
+        var imie = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : UnknownValue;
         var polityk = await entityResolver.GetOrCreatePolitykAsync(imie, nazwisko, ct);
 
         var start = new StartyWyborcze
@@ -138,8 +112,8 @@ public sealed class SejmDemo2023Transformer(
             NumerNaLiscie = pozycja,
             KomitetId = komitet.Id,
             PartiaId = partia?.Id,
-            Zawod = GetVal(excelRow, CandidatesHeaders.Zawód),
-            MiejsceZamieszkania = GetVal(excelRow, CandidatesHeaders.MiejsceZamieszkania)
+            Zawod = GetValue(excelRow, CandidatesHeaders.Zawód),
+            MiejsceZamieszkania = GetValue(excelRow, CandidatesHeaders.MiejsceZamieszkania)
         };
         Db.StartyWyborcze.Add(start);
 
@@ -154,18 +128,6 @@ public sealed class SejmDemo2023Transformer(
         importRow.DomainEntityType = nameof(StartyWyborcze);
         importRow.DomainEntityId = start.Id.ToString();
     }
-
-    private string? GetVal(RawRowDto row, CandidatesHeaders header) => 
-        row.Columns.TryGetValue(header.ToString(), out var val) ? val : null;
-
-    private int? ParseInt(RawRowDto row, CandidatesHeaders header) =>
-        int.TryParse(GetVal(row, header), out var val) ? val : null;
-
-    private string? GetVal(RawRowDto row, DistrictsHeaders header) => 
-        row.Columns.TryGetValue(header.ToString(), out var val) ? val : null;
-
-    private int? ParseInt(RawRowDto row, DistrictsHeaders header) =>
-        int.TryParse(GetVal(row, header), out var val) ? val : null;
 
     enum CandidatesHeaders
     {
@@ -190,9 +152,12 @@ public sealed class SejmDemo2023Transformer(
     enum DistrictsHeaders
     {
         NumerOkręgu,
-        Siedziba,
         LiczbaMandatów,
+        LiczbaList,
+        LiczbaKandydatow,
         LiczbaMieszkańców,
-        LiczbaWyborców
+        LiczbaWyborców,
+        Siedziba,
+        OpisGranic
     }
 }

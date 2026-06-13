@@ -10,7 +10,7 @@ public class ImportBatch
     public string PipelineKey { get; set; } = null!;
 
     public ImportBatchStatus Status { get; set; } = ImportBatchStatus.Created;
-    public string PrimarySourceType { get; set; }
+    public string PrimarySourceType { get; set; } = null!;
     public int? ElectionYear { get; set; }
     public DateTime StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }

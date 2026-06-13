@@ -1,5 +1,4 @@
-using PoliticalPaths.Application.Abstractions.Imports;
-using PoliticalPaths.Application.Deserialization;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Shared.Paths;
 using System.Text.Json;
 

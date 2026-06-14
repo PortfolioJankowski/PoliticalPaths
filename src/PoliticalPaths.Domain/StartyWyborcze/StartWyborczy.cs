@@ -14,6 +14,7 @@ public sealed class StartWyborczy
     public string? MiejsceZamieszkania { get; set; }
     public Guid? PartiaId { get; set; }
     public Guid KomitetId { get; set; }
+    public Guid WynikiId { get; set; }
+    public Guid  PopierajacaPartiaId { get; set; }
 
-    public WynikiWyborow Wyniki { get; set; } = default!;
 }

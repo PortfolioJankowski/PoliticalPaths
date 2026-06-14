@@ -12,6 +12,13 @@ using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 
+//TODO -> SZCZEGÓLY WYBORÓW - LICZBA LIST, LICZBA KANDYDATÓW, LICZBA MANDATÓW SIE NIE DODALA
+//TABELA MANDATY JEST PUSTA
+//KOMITETY WYBORCZE - RODZAJ KOMITETU SIE NIE DODAŁ
+//WYBORY -> TURA NULL
+//Popierajaca partia się defaultowo dodaje jako 00000 (chce nullable)
+//Mam jeden RodzajWyborów ale w OkręgachWyborczych mam jakieś 2 ID (okręg dodał się 2x - raz z zupełnie błędnym ID (nie ma go w RodzajeWyborów)
+//Spróbować jakieś SQLe stworzyć do pokazania finalnego
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
 [ImportTransformer("Sejm2023", "sejm-2023-okregi", "sejm-2023-kandydaci")]
@@ -36,7 +43,6 @@ public sealed class SejmDemo2023Transformer(
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        // Resolve basic election context
         var source = context.Sources.FirstOrDefault()!;
         var electionName = $"{source.Assembly} {source.ElectionDate.Year.ToString()}";
 
@@ -101,6 +107,14 @@ public sealed class SejmDemo2023Transformer(
         var nazwiskoImiona = GetValue(excelRow, CandidatesHeaders.NazwiskoIImiona);
         var komitetNazwa = GetValue(excelRow, CandidatesHeaders.NazwaKomitetu);
         var partiaNazwa = GetValue(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
+        partiaNazwa = partiaNazwa!.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+        var popierajacaPartiaNazwa = GetValue(excelRow, CandidatesHeaders.Poparcie);
+        if (!string.IsNullOrWhiteSpace(popierajacaPartiaNazwa))
+        {
+            popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+            popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierany przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+        }
+
         var glosy = ParseInt(excelRow, CandidatesHeaders.LiczbaGłosów) ?? 0;
         var czyMandat = ParseBool(excelRow, CandidatesHeaders.CzyPrzyznanoMandat, TrueValues);
 
@@ -117,16 +131,20 @@ public sealed class SejmDemo2023Transformer(
             listaId = lista.Id;
         }
 
-        var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
-        if (partia != null)
-        {
-            await clubService.UpdateMembershipAsync(partia.Id, komitet.Id, wyboryId, ct);
-        }
-
         var parts = nazwiskoImiona.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var nazwisko = parts.Length > 0 ? parts[0] : UnknownValue;
         var imie = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : UnknownValue;
         var polityk = await entityResolver.GetOrCreatePolitykAsync(imie, nazwisko, ct);
+
+        var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
+        if (partia != null)
+        {
+            await clubService.UpdateMembershipAsync(polityk.Id, partia.Id, wyboryId);
+        }
+
+        var popierajacaPartia = await entityResolver.GetOrCreatePartiaAsync(popierajacaPartiaNazwa!, ct);
+
+        var wyniki = entityResolver.CreateWynikiAsync(glosy, czyMandat);
 
         var start = new StartWyborczy
         {
@@ -137,17 +155,16 @@ public sealed class SejmDemo2023Transformer(
             KomitetId = komitet.Id,
             PartiaId = partia?.Id,
             Zawod = GetValue(excelRow, CandidatesHeaders.Zawód),
-            MiejsceZamieszkania = GetValue(excelRow, CandidatesHeaders.MiejsceZamieszkania)
+            MiejsceZamieszkania = GetValue(excelRow, CandidatesHeaders.MiejsceZamieszkania),
+            WynikiId = wyniki.Id
         };
-        Db.StartyWyborcze.Add(start);
 
-        var wynik = new WynikiWyborow
+        if (popierajacaPartia != null)
         {
-            StartId = start.Id,
-            LiczbaGlosow = glosy,
-            CzyMandat = czyMandat
-        };
-        Db.WynikiWyborow.Add(wynik);
+            start.PopierajacaPartiaId = popierajacaPartia.Id;
+        }
+
+        Db.StartyWyborcze.Add(start);
 
         importRow.DomainEntityType = nameof(StartWyborczy);
         importRow.DomainEntityId = start.Id.ToString();

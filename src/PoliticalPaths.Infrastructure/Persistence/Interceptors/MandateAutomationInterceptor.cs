@@ -23,16 +23,16 @@ public sealed class MandateAutomationInterceptor : SaveChangesInterceptor
 
     private async Task HandleElectionResults(DbContext context, CancellationToken ct)
     {
-        var wonResults = context.ChangeTracker.Entries<WynikiWyborow>()
-            .Where(e => (e.State == EntityState.Added || e.State == EntityState.Modified) && e.Entity.CzyMandat)
+        var starts = context.ChangeTracker.Entries<StartWyborczy>()
+            .Where(e => (e.State == EntityState.Added || e.State == EntityState.Modified))
             .Select(e => e.Entity)
             .ToList();
 
-        if (!wonResults.Any()) return;
+        if (!starts.Any()) return;
 
-        var startIds = wonResults.Select(r => r.StartId).ToList();
-        var starts = await context.Set<StartWyborczy>()
-            .Where(s => startIds.Contains(s.Id))
+        var wynikiIds = starts.Select(r => r.WynikiId).ToList();
+        var wyniki = await context.Set<WynikiWyborow>()
+            .Where(w => wynikiIds.Contains(w.Id) && w.CzyMandat)
             .ToListAsync(ct);
 
         var listaIds = starts.Where(s => s.ListaId.HasValue).Select(s => s.ListaId!.Value).Distinct().ToList();
@@ -50,6 +50,8 @@ public sealed class MandateAutomationInterceptor : SaveChangesInterceptor
 
         foreach (var start in starts)
         {
+            var maMandat = wyniki.Any(w => w.Id == start.WynikiId); 
+            if (!maMandat) continue;
             var lista = listas.FirstOrDefault(l => l.Id == start.ListaId);
             if (lista == null) continue;
 

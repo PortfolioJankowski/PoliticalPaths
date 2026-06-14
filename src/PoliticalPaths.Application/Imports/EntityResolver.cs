@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -8,6 +7,7 @@ using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
+using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 
 namespace PoliticalPaths.Application.Imports;
@@ -21,6 +21,9 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     {
         MaxDepth = 64,
     };
+
+
+    private readonly string[] _bezpartyjnyOkreslenia = new[] { "nie nale¿y do partii politycznej" };
 
     private async Task<TDto?> GetFromCacheDto<TDto>(string key, CancellationToken ct) where TDto : class
     {
@@ -247,36 +250,52 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
-    public async Task<Klub> GetOrCreatePartiaAsync(string nazwa,
+    public async Task<Partia> GetOrCreatePartiaAsync(string nazwa,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(nazwa) || nazwa.Equals("bezpartyjny", StringComparison.OrdinalIgnoreCase)) return null!;
+        if (string.IsNullOrWhiteSpace(nazwa) ||  _bezpartyjnyOkreslenia.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
+           return null!;
 
         var key = $"partia_{nazwa}";
-        var dto = await GetFromCacheDto<KlubDto>(key, ct);
+        var dto = await GetFromCacheDto<PartiaDto>(key, ct);
         if (dto != null)
         {
-            var localById = db.Kluby.Local.FirstOrDefault(k => k.Id == dto.Id);
+            var localById = db.Partie.Local.FirstOrDefault(k => k.Id == dto.Id);
             if (localById != null) return localById;
 
-            var tracked = await db.Kluby.FindAsync(new object[] { dto.Id }, ct);
+            var tracked = await db.Partie.FindAsync(new object[] { dto.Id }, ct);
             if (tracked != null) return tracked;
 
-            return new Klub { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot, DataZalozenia = dto.DataZalozenia, DataZakonczeniaDzialalnosci = dto.DataZakonczeniaDzialalnosci };
+            var nowaPartia = new Partia { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot, DataZalozenia = dto.DataZalozenia, DataZakonczeniaDzialalnosci = dto.DataZakonczeniaDzialalnosci };
+            db.Partie.Attach(nowaPartia);
+            return nowaPartia;
         }
 
-        var local = db.Kluby.Local.FirstOrDefault(k => k.Nazwa == nazwa);
+        var local = db.Partie.Local.FirstOrDefault(k => k.Nazwa == nazwa);
         if (local != null) return local;
 
-        var val = await db.Kluby.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
+        var val = await db.Partie.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
         if (val == null)
         {
-            val = new Klub { Id = Guid.NewGuid(), Nazwa = nazwa };
-            db.Kluby.Add(val);
+            val = new Partia { Id = Guid.NewGuid(), Nazwa = nazwa };
+            db.Partie.Add(val);
         }
 
-        await SetToCacheDto(key, KlubDto.FromEntity(val), ct);
+        await SetToCacheDto(key, PartiaDto.FromEntity(val), ct);
         return val;
+    }
+
+    public WynikiWyborow CreateWynikiAsync(int glosy, bool czyMandat)
+    {
+        var wyniki = new WynikiWyborow
+        {
+            Id = Guid.NewGuid(),
+            LiczbaGlosow = glosy,
+            CzyMandat = czyMandat
+        };
+
+        db.WynikiWyborow.Add(wyniki);
+        return wyniki;
     }
 
     public async Task<Polityk> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default)

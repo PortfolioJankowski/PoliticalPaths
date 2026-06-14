@@ -58,24 +58,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Klub",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Nazwa = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Skrot = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DataZalozenia = table.Column<DateOnly>(type: "date", nullable: true),
-                    DataZakonczeniaDzialalnosci = table.Column<DateOnly>(type: "date", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Klub", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "KomitetyWyborcze",
                 columns: table => new
                 {
@@ -99,7 +81,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     OkregId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     NumerListy = table.Column<int>(type: "int", nullable: false),
-                    MapaWyborowId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WyboryId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     KomitetWyborczyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
@@ -136,6 +118,24 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OkregWyborczy", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Partia",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Nazwa = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Skrot = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DataZalozenia = table.Column<DateOnly>(type: "date", nullable: true),
+                    DataZakonczeniaDzialalnosci = table.Column<DateOnly>(type: "date", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Partia", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -181,13 +181,13 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "WynikiWyborow",
                 columns: table => new
                 {
-                    StartId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LiczbaGlosow = table.Column<int>(type: "int", nullable: false),
                     CzyMandat = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WynikiWyborow", x => x.StartId);
+                    table.PrimaryKey("PK_WynikiWyborow", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -258,6 +258,37 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "StartyWyborcze",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    NumerNaLiscie = table.Column<int>(type: "int", nullable: true),
+                    ListaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Zawod = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Wyksztalcenie = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MiejsceZamieszkania = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PartiaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    KomitetId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WynikiId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PopierajacaPartiaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StartyWyborcze", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StartyWyborcze_Politycy_PolitykId",
+                        column: x => x.PolitykId,
+                        principalTable: "Politycy",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ZdarzeniaMandatowe",
                 columns: table => new
                 {
@@ -315,42 +346,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "StartyWyborcze",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    NumerNaLiscie = table.Column<int>(type: "int", nullable: true),
-                    ListaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    Zawod = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Wyksztalcenie = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    MiejsceZamieszkania = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PartiaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    KomitetId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    WynikiStartId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StartyWyborcze", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_StartyWyborcze_Politycy_PolitykId",
-                        column: x => x.PolitykId,
-                        principalTable: "Politycy",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StartyWyborcze_WynikiWyborow_WynikiStartId",
-                        column: x => x.WynikiStartId,
-                        principalTable: "WynikiWyborow",
-                        principalColumn: "StartId",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "ImportRows",
                 columns: table => new
                 {
@@ -386,32 +381,32 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "KlubCzlonkostwa",
+                name: "PartieCzlonkostwa",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    KlubId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PartiaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     WyboryId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_KlubCzlonkostwa", x => x.Id);
+                    table.PrimaryKey("PK_PartieCzlonkostwa", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_KlubCzlonkostwa_Klub_KlubId",
-                        column: x => x.KlubId,
-                        principalTable: "Klub",
+                        name: "FK_PartieCzlonkostwa_Partia_PartiaId",
+                        column: x => x.PartiaId,
+                        principalTable: "Partia",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_KlubCzlonkostwa_Politycy_PolitykId",
+                        name: "FK_PartieCzlonkostwa_Politycy_PolitykId",
                         column: x => x.PolitykId,
                         principalTable: "Politycy",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_KlubCzlonkostwa_Wybory_WyboryId",
+                        name: "FK_PartieCzlonkostwa_Wybory_WyboryId",
                         column: x => x.WyboryId,
                         principalTable: "Wybory",
                         principalColumn: "Id",
@@ -486,29 +481,24 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 columns: new[] { "ImportFileId", "Status" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_KlubCzlonkostwa_KlubId",
-                table: "KlubCzlonkostwa",
-                column: "KlubId");
+                name: "IX_PartieCzlonkostwa_PartiaId",
+                table: "PartieCzlonkostwa",
+                column: "PartiaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_KlubCzlonkostwa_PolitykId",
-                table: "KlubCzlonkostwa",
+                name: "IX_PartieCzlonkostwa_PolitykId",
+                table: "PartieCzlonkostwa",
                 column: "PolitykId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_KlubCzlonkostwa_WyboryId",
-                table: "KlubCzlonkostwa",
+                name: "IX_PartieCzlonkostwa_WyboryId",
+                table: "PartieCzlonkostwa",
                 column: "WyboryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StartyWyborcze_PolitykId",
                 table: "StartyWyborcze",
                 column: "PolitykId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StartyWyborcze_WynikiStartId",
-                table: "StartyWyborcze",
-                column: "WynikiStartId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransformationErrors_ImportRowId",
@@ -538,13 +528,13 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "Kadencje");
 
             migrationBuilder.DropTable(
-                name: "KlubCzlonkostwa");
-
-            migrationBuilder.DropTable(
                 name: "KomitetyWyborcze");
 
             migrationBuilder.DropTable(
                 name: "ListaWyborcza");
+
+            migrationBuilder.DropTable(
+                name: "PartieCzlonkostwa");
 
             migrationBuilder.DropTable(
                 name: "StartyWyborcze");
@@ -556,16 +546,16 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "TransformationErrors");
 
             migrationBuilder.DropTable(
+                name: "WynikiWyborow");
+
+            migrationBuilder.DropTable(
                 name: "ZdarzeniaMandatowe");
 
             migrationBuilder.DropTable(
-                name: "Klub");
+                name: "Partia");
 
             migrationBuilder.DropTable(
                 name: "Wybory");
-
-            migrationBuilder.DropTable(
-                name: "WynikiWyborow");
 
             migrationBuilder.DropTable(
                 name: "OkregWyborczy");

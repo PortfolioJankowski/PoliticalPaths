@@ -20,9 +20,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 
     // Domena
     public DbSet<Polityk> Politycy => Set<Polityk>();
-    public DbSet<Klub> Formacje => Set<Klub>();
-    public DbSet<Klub> Kluby => Set<Klub>();
-    public DbSet<KlubCzlonkostwo> KlubCzlonkostwa => Set<KlubCzlonkostwo>();
+    public DbSet<Partia> Formacje => Set<Partia>();
+    public DbSet<Partia> Partie => Set<Partia>();
+    public DbSet<PartiaCzlonkostwo> PartieCzlonkostwa => Set<PartiaCzlonkostwo>();
     public DbSet<Wybory> Wybory => Set<Wybory>();
     public DbSet<RodzajeWyborow> RodzajeWyborow => Set<RodzajeWyborow>();
     public DbSet<OkregWyborczy> OkregWyborczy => Set<OkregWyborczy>();
@@ -84,10 +84,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany(w => w.Ludnosc)
             .HasForeignKey(x => x.OkregId);
 
-        modelBuilder.Entity<WynikiWyborow>(b =>
-        {
-            b.HasKey(x => x.StartId);
-        });
 
         modelBuilder.Entity<StartWyborczy>(b =>
         {
@@ -102,14 +98,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany(p => p.StartyWyborcze)
             .HasForeignKey(x => x.PolitykId);
 
-        modelBuilder.Entity<KlubCzlonkostwo>(b =>
+        modelBuilder.Entity<PartiaCzlonkostwo>(b =>
         {
             b.HasKey(x => x.Id);
 
             b.Property(x => x.PolitykId)
                 .IsRequired();
 
-            b.Property(x => x.KlubId)
+            b.Property(x => x.PartiaId)
                 .IsRequired();
 
             b.Property(x => x.WyboryId)
@@ -122,9 +118,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // FK -> Klub
-            b.HasOne<Klub>()
+            b.HasOne<Partia>()
                 .WithMany(x => x.Czlonkostwa)
-                .HasForeignKey(x => x.KlubId)
+                .HasForeignKey(x => x.PartiaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // FK -> Wybory

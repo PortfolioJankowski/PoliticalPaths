@@ -2,7 +2,7 @@ using PoliticalPaths.Domain.Formacje;
 
 namespace PoliticalPaths.Application.Dtos;
 
-public sealed record KlubDto
+public sealed record PartiaDto
 {
     public Guid Id { get; init; }
     public string Nazwa { get; init; } = default!;
@@ -10,9 +10,9 @@ public sealed record KlubDto
     public DateOnly? DataZalozenia { get; init; }
     public DateOnly? DataZakonczeniaDzialalnosci { get; init; }
 
-    public static KlubDto FromEntity(Klub e)
+    public static PartiaDto FromEntity(Partia e)
     {
-        return new KlubDto
+        return new PartiaDto
         {
             Id = e.Id,
             Nazwa = e.Nazwa,

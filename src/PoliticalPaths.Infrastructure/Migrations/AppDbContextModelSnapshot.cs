@@ -22,7 +22,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.Klub", b =>
+            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.Partia", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,10 +43,10 @@ namespace PoliticalPaths.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Klub");
+                    b.ToTable("Partia");
                 });
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.KlubCzlonkostwo", b =>
+            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.PartiaCzlonkostwo", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -55,7 +55,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid>("KlubId")
+                    b.Property<Guid>("PartiaId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("PolitykId")
@@ -66,13 +66,13 @@ namespace PoliticalPaths.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("KlubId");
+                    b.HasIndex("PartiaId");
 
                     b.HasIndex("PolitykId");
 
                     b.HasIndex("WyboryId");
 
-                    b.ToTable("KlubCzlonkostwa");
+                    b.ToTable("PartieCzlonkostwa");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Imports.ImportBatch", b =>
@@ -454,11 +454,14 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("PolitykId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("PopierajacaPartiaId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Wyksztalcenie")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<Guid>("WynikiStartId")
+                    b.Property<Guid>("WynikiId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Zawod")
@@ -469,14 +472,12 @@ namespace PoliticalPaths.Infrastructure.Migrations
 
                     b.HasIndex("PolitykId");
 
-                    b.HasIndex("WynikiStartId");
-
                     b.ToTable("StartyWyborcze");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.StartyWyborcze.WynikiWyborow", b =>
                 {
-                    b.Property<Guid>("StartId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
@@ -486,7 +487,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<int>("LiczbaGlosow")
                         .HasColumnType("int");
 
-                    b.HasKey("StartId");
+                    b.HasKey("Id");
 
                     b.ToTable("WynikiWyborow");
                 });
@@ -521,13 +522,13 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("KomitetWyborczyId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("MapaWyborowId")
-                        .HasColumnType("char(36)");
-
                     b.Property<int>("NumerListy")
                         .HasColumnType("int");
 
                     b.Property<Guid>("OkregId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("WyboryId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
@@ -632,11 +633,11 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.ToTable("Wybory");
                 });
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.KlubCzlonkostwo", b =>
+            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.PartiaCzlonkostwo", b =>
                 {
-                    b.HasOne("PoliticalPaths.Domain.Formacje.Klub", null)
+                    b.HasOne("PoliticalPaths.Domain.Formacje.Partia", null)
                         .WithMany("Czlonkostwa")
-                        .HasForeignKey("KlubId")
+                        .HasForeignKey("PartiaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -709,15 +710,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PoliticalPaths.Domain.StartyWyborcze.WynikiWyborow", "Wyniki")
-                        .WithMany()
-                        .HasForeignKey("WynikiStartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Polityk");
-
-                    b.Navigation("Wyniki");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Wybory.SzczegolyOkregu", b =>
@@ -742,7 +735,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Navigation("Rodzaj");
                 });
 
-            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.Klub", b =>
+            modelBuilder.Entity("PoliticalPaths.Domain.Formacje.Partia", b =>
                 {
                     b.Navigation("Czlonkostwa");
                 });

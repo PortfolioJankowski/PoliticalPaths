@@ -9,11 +9,11 @@ public class ClubMembershipService(IAppDbContext db) : IClubMembershipService
 {
     public async Task UpdateMembershipAsync(
     Guid politykId,
-    Guid klubId,
+    Guid partiaId,
     Guid wyborId,
     CancellationToken ct = default)
     {
-        var memberships = await db.KlubCzlonkostwa
+        var memberships = await db.PartieCzlonkostwa
             .Where(x => x.PolitykId == politykId)
             .ToListAsync(ct);
 
@@ -21,11 +21,11 @@ public class ClubMembershipService(IAppDbContext db) : IClubMembershipService
 
         if (active == null)
         {
-            db.KlubCzlonkostwa.Add(new KlubCzlonkostwo
+            db.PartieCzlonkostwa.Add(new PartiaCzlonkostwo
             {
                 Id = Guid.NewGuid(),
                 PolitykId = politykId,
-                KlubId = klubId,
+                PartiaId = partiaId,
                 WyboryId = wyborId,
                 IsActive = true
             });
@@ -33,18 +33,18 @@ public class ClubMembershipService(IAppDbContext db) : IClubMembershipService
             return;
         }
 
-        if (active.KlubId == klubId)
+        if (active.PartiaId == partiaId)
         {
             return;
         }
 
         active.IsActive = false;
 
-        db.KlubCzlonkostwa.Add(new KlubCzlonkostwo
+        db.PartieCzlonkostwa.Add(new PartiaCzlonkostwo
         {
             Id = Guid.NewGuid(),
             PolitykId = politykId,
-            KlubId = klubId,
+            PartiaId = partiaId,
             WyboryId = wyborId,
             IsActive = true
         });

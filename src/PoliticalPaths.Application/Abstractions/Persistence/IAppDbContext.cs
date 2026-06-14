@@ -18,8 +18,8 @@ public interface IAppDbContext
 
     // Domena
     DbSet<Polityk> Politycy { get; }
-    DbSet<Klub> Kluby { get; }
-    DbSet<KlubCzlonkostwo> KlubCzlonkostwa { get; }
+    DbSet<Partia> Partie { get; }
+    DbSet<PartiaCzlonkostwo> PartieCzlonkostwa { get; }
     DbSet<Wybory> Wybory { get; }
     DbSet<RodzajeWyborow> RodzajeWyborow { get; }
     DbSet<OkregWyborczy> OkregWyborczy { get; }

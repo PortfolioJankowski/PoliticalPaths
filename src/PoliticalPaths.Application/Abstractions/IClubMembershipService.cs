@@ -4,7 +4,7 @@ public interface IClubMembershipService
 {
     Task UpdateMembershipAsync(
         Guid politykId,
-        Guid klubId,
-        Guid wyborId,
+        Guid partiaId,
+        Guid wyboryId,
         CancellationToken ct = default);
 }

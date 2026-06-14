@@ -1,12 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
+using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
+using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
@@ -22,7 +23,6 @@ public sealed class SejmDemo2023Transformer(
     IClubMembershipService clubService)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
-    private const string ElectionName = "Sejm Rzeczypospolitej Polskiej";
     private const string DistrictFileMarker = "okregi";
     private static readonly string[] TrueValues = ["tak", "true", "1"];
     private const string UnknownValue = "Nieznane";
@@ -37,19 +37,26 @@ public sealed class SejmDemo2023Transformer(
         CancellationToken cancellationToken = default)
     {
         // Resolve basic election context
-        var slownik = await entityResolver.GetOrCreateSlownikWyborowAsync(ElectionName, ct: cancellationToken);
-        if (!int.TryParse(context.ElectionYear, out var rok)) rok = 2023;
-        var wybory = await entityResolver.GetOrCreateWyboryAsync(slownik.Id, new DateOnly(rok, 10, 15), cancellationToken);
+        var source = context.Sources.FirstOrDefault()!;
+        var electionName = $"{source.Assembly} {source.ElectionDate.Year.ToString()}";
+
+        var rodzajWyborow = await entityResolver.GetOrCreateSlownikWyborowAsync(electionName, ct: cancellationToken);
+        if (!int.TryParse(source.ElectionDate.Year.ToString(), out var rok))
+        {
+            throw new Exception("Nie można odczytać roku wyborów z kontekstu");
+        }
+
+        var wybory = await entityResolver.GetOrCreateWyboryAsync(rodzajWyborow.Id, source.AnnouncementDate, source.ElectionDate, OrdynacjaWyborcza.Proporcjonalna, cancellationToken);
 
         var result = await ProcessRowsAsync(file, workbook, async (excelRow, importRow, ct) =>
         {
             if (file.StoragePath.Contains(DistrictFileMarker))
             {
-                await ProcessDistrictRow(excelRow, importRow, wybory.Id, rok, ct);
+                await ProcessDistrictRow(excelRow, importRow, wybory.Id, rodzajWyborow.Id,  rok, ct);
             }
             else
             {
-                await ProcessCandidateRow(excelRow, importRow, wybory.Id, ct);
+                await ProcessCandidateRow(excelRow, importRow, wybory.Id, rodzajWyborow.Id, ct);
             }
         }, progress, cancellationToken);
 
@@ -57,7 +64,7 @@ public sealed class SejmDemo2023Transformer(
         return result;
     }
 
-    private async Task ProcessDistrictRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, int rok, CancellationToken ct)
+    private async Task ProcessDistrictRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, Guid rodzajWyborowId, int rok, CancellationToken ct)
     {
         var nrOkregu = ParseInt(excelRow, DistrictsHeaders.NumerOkręgu);
         var liczbaMandatow = ParseInt(excelRow, DistrictsHeaders.LiczbaMandatów) ?? 0;
@@ -69,14 +76,24 @@ public sealed class SejmDemo2023Transformer(
         if (nrOkregu == null) throw new Exception("Brak numeru okręgu");
 
         var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, wyboryId, ct);
-        await entityResolver.UpdateOkregDetailsAsync(okreg.Id, liczbaMandatow, liczbaList, liczbaKandydatow, ct: ct);
-        await entityResolver.GetOrCreateLudnoscOkregowAsync(okreg.Id, rok, mieszkancy, uprawnieni, ct);
+        var szczegolyOkregu = new SzczegolyOkreguDto(
+            OkregId: okreg.Id,
+            Okreg: okreg,
+            RokWyborow: rok,
+            Mieszkancy: mieszkancy,
+            Uprawnieni: uprawnieni,
+            LiczbaMandatow: liczbaMandatow,
+            LiczbaList: liczbaList ?? 0,
+            LiczbaKandydatow: liczbaKandydatow ?? 0
+        );
+
+        await entityResolver.GetOrCreateSzczegolyOkregu(szczegolyOkregu);
 
         importRow.DomainEntityType = nameof(OkregWyborczy);
         importRow.DomainEntityId = okreg.Id.ToString();
     }
 
-    private async Task ProcessCandidateRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, CancellationToken ct)
+    private async Task ProcessCandidateRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, Guid rodzajWyborowId, CancellationToken ct)
     {
         var nrOkregu = ParseInt(excelRow, CandidatesHeaders.NrOkręgu);
         var nrListy = ParseInt(excelRow, CandidatesHeaders.NrListy);
@@ -90,7 +107,7 @@ public sealed class SejmDemo2023Transformer(
         if (nrOkregu == null || nazwiskoImiona == null || komitetNazwa == null)
             throw new Exception("Brak wymaganych danych kandydata");
 
-        var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, wyboryId, ct);
+        var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, rodzajWyborowId, ct);
         var komitet = await entityResolver.GetOrCreateKomitetAsync(komitetNazwa, ct);
         
         Guid? listaId = null;

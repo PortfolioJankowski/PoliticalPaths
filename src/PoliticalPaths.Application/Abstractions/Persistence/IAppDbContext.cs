@@ -23,7 +23,7 @@ public interface IAppDbContext
     DbSet<Wybory> Wybory { get; }
     DbSet<RodzajeWyborow> RodzajeWyborow { get; }
     DbSet<OkregWyborczy> OkregWyborczy { get; }
-    DbSet<LudnoscOkregow> LudnoscOkregow { get; }
+    DbSet<SzczegolyOkregu> SzczegolyOkregow { get; }
     DbSet<KomitetWyborczy> KomitetyWyborcze { get; }
     DbSet<ListaWyborcza> ListaWyborcza { get; }
     DbSet<StartWyborczy> StartyWyborcze { get; }

@@ -40,7 +40,7 @@ public sealed class MandateAutomationInterceptor : SaveChangesInterceptor
             .Where(l => listaIds.Contains(l.Id))
             .ToListAsync(ct);
 
-        var electionIds = listas.Select(l => l.MapaWyborowId).Distinct().ToList();
+        var electionIds = listas.Select(l => l.WyboryId).Distinct().ToList();
         var kadencje = await context.Set<Kadencja>()
             .Where(k => electionIds.Contains(k.FoundingElectionId))
             .ToListAsync(ct);
@@ -53,7 +53,7 @@ public sealed class MandateAutomationInterceptor : SaveChangesInterceptor
             var lista = listas.FirstOrDefault(l => l.Id == start.ListaId);
             if (lista == null) continue;
 
-            var electionId = lista.MapaWyborowId;
+            var electionId = lista.WyboryId;
             if (!termMap.TryGetValue(electionId, out var kadencja))
             {
                 // Check if already created in this SaveChanges session

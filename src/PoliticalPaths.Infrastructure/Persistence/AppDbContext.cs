@@ -26,7 +26,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Wybory> Wybory => Set<Wybory>();
     public DbSet<RodzajeWyborow> RodzajeWyborow => Set<RodzajeWyborow>();
     public DbSet<OkregWyborczy> OkregWyborczy => Set<OkregWyborczy>();
-    public DbSet<LudnoscOkregow> LudnoscOkregow => Set<LudnoscOkregow>();
+    public DbSet<SzczegolyOkregu> SzczegolyOkregow => Set<SzczegolyOkregu>();
     public DbSet<KomitetWyborczy> KomitetyWyborcze => Set<KomitetWyborczy>();
     public DbSet<ListaWyborcza> ListaWyborcza => Set<ListaWyborcza>();
     public DbSet<StartWyborczy> StartyWyborcze => Set<StartWyborczy>();
@@ -74,12 +74,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             b.HasKey(x => x.Id);
         });
 
-        modelBuilder.Entity<LudnoscOkregow>(b =>
+        modelBuilder.Entity<SzczegolyOkregu>(b =>
         {
             b.HasKey(x => new { x.OkregId, x.RokWyborow });
         });
 
-        modelBuilder.Entity<LudnoscOkregow>()
+        modelBuilder.Entity<SzczegolyOkregu>()
             .HasOne(x => x.Okreg)
             .WithMany(w => w.Ludnosc)
             .HasForeignKey(x => x.OkregId);

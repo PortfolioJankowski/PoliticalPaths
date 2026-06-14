@@ -18,7 +18,7 @@ public class ImportBatch
     public string? TriggeredBy { get; set; }
     public string? Notes { get; set; }
     public Guid? SupersedesBatchId { get; set; }
-    public ICollection<ImportFile> Files { get; set; } = [];
+    public ICollection<ImportFile> Files { get; set; } = new List<ImportFile>();
 
     public void StartBatch()
     {

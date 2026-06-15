@@ -11,7 +11,7 @@ public interface IEntityResolver
 {
     Task<RodzajeWyborow> GetOrCreateSlownikWyborowAsync(string nazwa, PoziomWyborow poziom = PoziomWyborow.Krajowy, CancellationToken ct = default);
     
-    Task<Wybory> GetOrCreateWyboryAsync(Guid rodzajId, DateOnly? dataOgloszenia, DateOnly dataWyborow, OrdynacjaWyborcza ordynacja = OrdynacjaWyborcza.Proporcjonalna, CancellationToken ct = default);
+    Task<Wybory> GetOrCreateWyboryAsync(WyboryDto wyboryDto, CancellationToken ct = default);
     
     Task<OkregWyborczy> GetOrCreateOkregAsync(int numer, Guid rodzajWyborowId, CancellationToken ct = default);
 

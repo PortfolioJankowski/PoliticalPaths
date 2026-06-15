@@ -15,6 +15,6 @@ public sealed class StartWyborczy
     public Guid? PartiaId { get; set; }
     public Guid KomitetId { get; set; }
     public Guid WynikiId { get; set; }
-    public Guid  PopierajacaPartiaId { get; set; }
+    public Guid? PopierajacaPartiaId { get; set; }
 
 }

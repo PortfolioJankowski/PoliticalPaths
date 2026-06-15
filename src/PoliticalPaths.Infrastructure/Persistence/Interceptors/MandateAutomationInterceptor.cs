@@ -15,132 +15,136 @@ public sealed class MandateAutomationInterceptor : SaveChangesInterceptor
         var context = eventData.Context;
         if (context == null) return result;
 
-        await HandleElectionResults(context, cancellationToken);
-        await HandleMandateEvents(context, cancellationToken);
+        var starts = context.ChangeTracker.Entries<StartWyborczy>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+            .Select(e => e.Entity)
+            .ToList();
+
+        if (!starts.Any())
+            return await base.SavingChangesAsync(eventData, result, cancellationToken);
+
+        await EnsureKadencjeExist(context, starts, cancellationToken);
+        await EnsureMandatesExist(context, starts, cancellationToken);
+
+        context.ChangeTracker.DetectChanges();
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private async Task HandleElectionResults(DbContext context, CancellationToken ct)
+    private async Task EnsureKadencjeExist(DbContext context, List<StartWyborczy> starts, CancellationToken ct)
     {
-        var starts = context.ChangeTracker.Entries<StartWyborczy>()
-            .Where(e => (e.State == EntityState.Added || e.State == EntityState.Modified))
-            .Select(e => e.Entity)
+        var listaIds = starts
+            .Where(s => s.ListaId.HasValue)
+            .Select(s => s.ListaId!.Value)
+            .Distinct()
             .ToList();
 
-        if (!starts.Any()) return;
-
-        var wynikiIds = starts.Select(r => r.WynikiId).ToList();
-        var wyniki = await context.Set<WynikiWyborow>()
-            .Where(w => wynikiIds.Contains(w.Id) && w.CzyMandat)
-            .ToListAsync(ct);
-
-        var listaIds = starts.Where(s => s.ListaId.HasValue).Select(s => s.ListaId!.Value).Distinct().ToList();
-        var listas = await context.Set<PoliticalPaths.Domain.Wybory.ListaWyborcza>()
+        var electionIds = await context.Set<PoliticalPaths.Domain.Wybory.ListaWyborcza>()
             .Where(l => listaIds.Contains(l.Id))
+            .Select(l => l.WyboryId)
+            .Distinct()
             .ToListAsync(ct);
 
-        var electionIds = listas.Select(l => l.WyboryId).Distinct().ToList();
-        var kadencje = await context.Set<Kadencja>()
+        var existingKadencje = await context.Set<Kadencja>()
             .Where(k => electionIds.Contains(k.FoundingElectionId))
-            .ToListAsync(ct);
+            .ToDictionaryAsync(k => k.FoundingElectionId, ct);
 
-        var electionMap = new Dictionary<Guid, PoliticalPaths.Domain.Wybory.Wybory>();
-        var termMap = kadencje.ToDictionary(k => k.FoundingElectionId);
-
-        foreach (var start in starts)
+        foreach (var electionId in electionIds)
         {
-            var maMandat = wyniki.Any(w => w.Id == start.WynikiId); 
-            if (!maMandat) continue;
-            var lista = listas.FirstOrDefault(l => l.Id == start.ListaId);
-            if (lista == null) continue;
+            if (existingKadencje.ContainsKey(electionId))
+                continue;
 
-            var electionId = lista.WyboryId;
-            if (!termMap.TryGetValue(electionId, out var kadencja))
+            var election = await context.Set<PoliticalPaths.Domain.Wybory.Wybory>()
+                .FindAsync([electionId], ct);
+
+            if (election == null)
+                continue;
+
+            var rodzaj = await context.Set<PoliticalPaths.Domain.Wybory.RodzajeWyborow>()
+                .FindAsync([election.RodzajWyborowId], ct);
+
+            var kadencja = new Kadencja
             {
-                // Check if already created in this SaveChanges session
-                kadencja = context.ChangeTracker.Entries<Kadencja>()
-                    .Select(e => e.Entity)
-                    .FirstOrDefault(k => k.FoundingElectionId == electionId);
+                Id = Guid.NewGuid(),
+                FoundingElectionId = electionId,
+                Nazwa = $"{(rodzaj?.Nazwa ?? "Kadencja")} ({election.DataWyborow.Year})",
+                DataRozpoczecia = election.DataWyborow
+            };
 
-                if (kadencja == null)
-                {
-                    if (!electionMap.TryGetValue(electionId, out var election))
-                    {
-                        election = await context.Set<PoliticalPaths.Domain.Wybory.Wybory>().FindAsync([electionId], ct);
-                        if (election != null) electionMap[electionId] = election;
-                    }
-
-                    if (election != null)
-                    {
-                        var rodzaj = await context.Set<PoliticalPaths.Domain.Wybory.RodzajeWyborow>().FindAsync([election.RodzajWyborowId], ct);
-                        kadencja = new Kadencja
-                        {
-                            Id = Guid.NewGuid(),
-                            FoundingElectionId = electionId,
-                            Nazwa = $"{(rodzaj?.Nazwa ?? "Kadencja")} ({election.DataWyborow.Year})",
-                            DataRozpoczecia = election.DataWyborow
-                        };
-                        context.Set<Kadencja>().Add(kadencja);
-                    }
-                }
-                
-                if (kadencja != null) termMap[electionId] = kadencja;
-            }
-
-            if (kadencja != null)
-            {
-                var existing = await context.Set<Mandat>()
-                    .AnyAsync(m => m.PolitykId == start.PolitykId && m.KadencjaId == kadencja.Id, ct);
-
-                if (!existing)
-                {
-                    // Also check tracker
-                    var inTracker = context.ChangeTracker.Entries<Mandat>()
-                        .Any(e => e.Entity.PolitykId == start.PolitykId && e.Entity.KadencjaId == kadencja.Id);
-
-                    if (!inTracker)
-                    {
-                        context.Set<Mandat>().Add(new Mandat
-                        {
-                            Id = Guid.NewGuid(),
-                            PolitykId = start.PolitykId,
-                            KadencjaId = kadencja.Id,
-                            DataOd = kadencja.DataRozpoczecia,
-                            Status = PoliticalPaths.Domain.Enums.StatusMandatu.Aktywny
-                        });
-                    }
-                }
-            }
+            context.Set<Kadencja>().Add(kadencja);
+            existingKadencje[electionId] = kadencja;
         }
     }
 
-    private async Task HandleMandateEvents(DbContext context, CancellationToken ct)
+    private async Task EnsureMandatesExist(DbContext context, List<StartWyborczy> starts, CancellationToken ct)
     {
-        var entries = context.ChangeTracker.Entries<ZdarzenieMandatowe>()
-            .Where(e => e.State == EntityState.Added)
+        var wynikiIds = starts.Select(s => s.WynikiId).Distinct().ToList();
+
+        var mandateWinningResults = await context.Set<WynikiWyborow>()
+            .Where(w => wynikiIds.Contains(w.Id) && w.CzyMandat)
+            .Select(w => w.Id)
+            .ToListAsync(ct);
+
+        if (!mandateWinningResults.Any())
+            return;
+
+        var listaIds = starts
+            .Where(s => s.ListaId.HasValue)
+            .Select(s => s.ListaId!.Value)
+            .Distinct()
             .ToList();
 
-        foreach (var entry in entries)
-        {
-            var ev = entry.Entity;
-            var mandate = await context.Set<Mandat>().FindAsync([ev.MandatId], ct);
-            if (mandate == null) continue;
+        var listas = await context.Set<PoliticalPaths.Domain.Wybory.ListaWyborcza>()
+            .Where(l => listaIds.Contains(l.Id))
+            .ToDictionaryAsync(l => l.Id, ct);
 
-            switch (ev.Typ)
+        var electionIds = listas.Values
+            .Select(l => l.WyboryId)
+            .Distinct()
+            .ToList();
+
+        var kadencje = await context.Set<Kadencja>()
+            .Where(k => electionIds.Contains(k.FoundingElectionId))
+            .ToDictionaryAsync(k => k.FoundingElectionId, ct);
+
+        foreach (var start in starts)
+        {
+            if (!mandateWinningResults.Contains(start.WynikiId))
+                continue;
+
+            if (!start.ListaId.HasValue)
+                continue;
+
+            if (!listas.TryGetValue(start.ListaId.Value, out var lista))
+                continue;
+
+            if (!kadencje.TryGetValue(lista.WyboryId, out var kadencja))
+                continue;
+
+            var exists = await context.Set<Mandat>()
+                .AnyAsync(m =>
+                    m.PolitykId == start.PolitykId &&
+                    m.KadencjaId == kadencja.Id, ct);
+
+            if (exists)
+                continue;
+
+            var inTracker = context.ChangeTracker.Entries<Mandat>()
+                .Any(e =>
+                    e.Entity.PolitykId == start.PolitykId &&
+                    e.Entity.KadencjaId == kadencja.Id);
+
+            if (inTracker)
+                continue;
+
+            context.Set<Mandat>().Add(new Mandat
             {
-                case TypZdarzeniaMandatowego.Wygasniecie:
-                case TypZdarzeniaMandatowego.Zrzeczenie:
-                case TypZdarzeniaMandatowego.ObjecieInnejFunkcji:
-                case TypZdarzeniaMandatowego.KoniecKadencji:
-                    mandate.DataDo = ev.DataZdarzenia;
-                    mandate.Status = PoliticalPaths.Domain.Enums.StatusMandatu.Wygasniety;
-                    break;
-                case TypZdarzeniaMandatowego.Objecie:
-                    mandate.DataOd = ev.DataZdarzenia;
-                    mandate.Status = PoliticalPaths.Domain.Enums.StatusMandatu.Aktywny;
-                    break;
-            }
+                Id = Guid.NewGuid(),
+                PolitykId = start.PolitykId,
+                KadencjaId = kadencja.Id,
+                DataOd = kadencja.DataRozpoczecia,
+                Status = PoliticalPaths.Domain.Enums.StatusMandatu.Aktywny
+            });
         }
     }
 }

@@ -12,21 +12,16 @@ using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 
-//TODO -> SZCZEGÓLY WYBORÓW - LICZBA LIST, LICZBA KANDYDATÓW, LICZBA MANDATÓW SIE NIE DODALA
 //TABELA MANDATY JEST PUSTA
-//KOMITETY WYBORCZE - RODZAJ KOMITETU SIE NIE DODAŁ
-//WYBORY -> TURA NULL
-//Popierajaca partia się defaultowo dodaje jako 00000 (chce nullable)
-//Mam jeden RodzajWyborów ale w OkręgachWyborczych mam jakieś 2 ID (okręg dodał się 2x - raz z zupełnie błędnym ID (nie ma go w RodzajeWyborów)
 //Spróbować jakieś SQLe stworzyć do pokazania finalnego
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
-[ImportTransformer("Sejm2023", "sejm-2023-okregi", "sejm-2023-kandydaci")]
-public sealed class SejmDemo2023Transformer(
+[ImportTransformer("Sejm2023")]
+public sealed class Sejm2023Transformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
     ITransformationErrorRecorder errorRecorder,
-    ILogger<SejmDemo2023Transformer> logger,
+    ILogger<Sejm2023Transformer> logger,
     IClubMembershipService clubService)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
@@ -47,12 +42,21 @@ public sealed class SejmDemo2023Transformer(
         var electionName = $"{source.Assembly} {source.ElectionDate.Year.ToString()}";
 
         var rodzajWyborow = await entityResolver.GetOrCreateSlownikWyborowAsync(electionName, ct: cancellationToken);
+        
         if (!int.TryParse(source.ElectionDate.Year.ToString(), out var rok))
         {
             throw new Exception("Nie można odczytać roku wyborów z kontekstu");
         }
 
-        var wybory = await entityResolver.GetOrCreateWyboryAsync(rodzajWyborow.Id, source.AnnouncementDate, source.ElectionDate, OrdynacjaWyborcza.Proporcjonalna, cancellationToken);
+        var wybory = await entityResolver.GetOrCreateWyboryAsync(new WyboryDto()
+        {
+            RodzajWyborowId = rodzajWyborow.Id,
+            CzyPrzedterminowe = source.IsSupplementary,
+            DataOgloszenia = source.AnnouncementDate,
+            DataWyborow = source.ElectionDate,
+            Ordynacja = OrdynacjaWyborcza.Proporcjonalna,
+            Tura = (TuraWyborow)int.Parse(source.Round)
+        });
 
         var result = await ProcessRowsAsync(file, workbook, async (excelRow, importRow, ct) =>
         {
@@ -82,6 +86,7 @@ public sealed class SejmDemo2023Transformer(
         if (nrOkregu == null) throw new Exception("Brak numeru okręgu");
 
         var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, wyboryId, ct);
+        
         var szczegolyOkregu = new SzczegolyOkreguDto(
             OkregId: okreg.Id,
             Okreg: okreg,
@@ -109,6 +114,7 @@ public sealed class SejmDemo2023Transformer(
         var partiaNazwa = GetValue(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
         partiaNazwa = partiaNazwa!.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
         var popierajacaPartiaNazwa = GetValue(excelRow, CandidatesHeaders.Poparcie);
+        
         if (!string.IsNullOrWhiteSpace(popierajacaPartiaNazwa))
         {
             popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();

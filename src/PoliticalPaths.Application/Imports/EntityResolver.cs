@@ -23,7 +23,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     };
 
 
-    private readonly string[] _bezpartyjnyOkreslenia = new[] { "nie nale¿y do partii politycznej" };
+    private readonly string[] _bezpartyjnyOkreslenia = new[] { "nie naleï¿½y do partii politycznej" };
 
     private async Task<TDto?> GetFromCacheDto<TDto>(string key, CancellationToken ct) where TDto : class
     {
@@ -68,9 +68,9 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
-    public async Task<Wybory> GetOrCreateWyboryAsync(Guid rodzajId, DateOnly? dataOgloszenia, DateOnly dataWyborow, OrdynacjaWyborcza ordynacja = OrdynacjaWyborcza.Proporcjonalna, CancellationToken ct = default)
+    public async Task<Wybory> GetOrCreateWyboryAsync(WyboryDto wyboryDto, CancellationToken ct = default)
     {
-        var key = $"wybory_{rodzajId}_{dataWyborow}";
+        var key = $"wybory_{wyboryDto.RodzajWyborowId}_{wyboryDto.DataWyborow}";
         var dto = await GetFromCacheDto<WyboryDto>(key, ct);
         if (dto != null)
         {
@@ -92,23 +92,28 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
             };
         }
 
-        var local = db.Wybory.Local.FirstOrDefault(w => w.RodzajWyborowId == rodzajId && w.DataWyborow == dataWyborow);
+        var local = db.Wybory.Local
+            .FirstOrDefault(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow);
+        
         if (local != null) return local;
 
-        var val = await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == rodzajId && w.DataWyborow == dataWyborow, ct);
+        var val = await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow, ct);
         if (val == null)
         {
             val = new Wybory
             {
                 Id = Guid.NewGuid(),
-                RodzajWyborowId = rodzajId,
-                DataWyborow = dataWyborow,
-                Ordynacja = ordynacja // Default for Sejm
+                RodzajWyborowId = wyboryDto.RodzajWyborowId,
+                DataWyborow = wyboryDto.DataWyborow,
+                Ordynacja = wyboryDto.Ordynacja,
+               CzyPrzedterminowe = wyboryDto.CzyPrzedterminowe,
+               DataOgloszenia =  wyboryDto.DataOgloszenia,
+               Tura = wyboryDto.Tura        
             };
 
-            if (dataOgloszenia.HasValue)
+            if (wyboryDto.DataOgloszenia.HasValue)
             {
-                val.DataOgloszenia = dataOgloszenia.Value;
+                val.DataOgloszenia = wyboryDto.DataOgloszenia.Value;
             }
 
             db.Wybory.Add(val);
@@ -118,38 +123,68 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
-    public async Task<OkregWyborczy> GetOrCreateOkregAsync(int numer, Guid rodzajWyborowId, CancellationToken ct = default)
+    public async Task<OkregWyborczy> GetOrCreateOkregAsync(
+        int numer,
+        Guid rodzajWyborowId,
+        CancellationToken ct = default)
     {
         var key = $"okreg_{rodzajWyborowId}_{numer}";
+
         var dto = await GetFromCacheDto<OkregWyborczyDto>(key, ct);
         if (dto != null)
         {
-            var localById = db.OkregWyborczy.Local.FirstOrDefault(o => o.Id == dto.Id);
-            if (localById != null) return localById;
-
             var tracked = await db.OkregWyborczy.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+            if (tracked != null)
+                return tracked;
 
-            return new OkregWyborczy
+            var byBusinessKey = await db.OkregWyborczy
+                .FirstOrDefaultAsync(o =>
+                    o.NumerOkregu == numer &&
+                    o.RodzajWyborowId == rodzajWyborowId, ct);
+
+            if (byBusinessKey != null)
+            {
+                return byBusinessKey;
+            }
+
+            var created = new OkregWyborczy
             {
                 Id = dto.Id,
-                NumerOkregu = dto.NumerOkregu,
-                RodzajWyborowId = dto.RodzajWyborowId
+                NumerOkregu = numer,
+                RodzajWyborowId = rodzajWyborowId
             };
+
+            db.OkregWyborczy.Add(created);
+            return created;
         }
 
-        var local = db.OkregWyborczy.Local.FirstOrDefault(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId);
-        if (local != null) return local;
+        var local = db.OkregWyborczy.Local
+            .FirstOrDefault(o => o.NumerOkregu == numer &&
+                                 o.RodzajWyborowId == rodzajWyborowId);
 
-        var val = await db.OkregWyborczy.FirstOrDefaultAsync(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId, ct);
-        if (val == null)
+        if (local != null)
+            return local;
+
+        var existing = await db.OkregWyborczy
+            .FirstOrDefaultAsync(o =>
+                o.NumerOkregu == numer &&
+                o.RodzajWyborowId == rodzajWyborowId, ct);
+
+        if (existing != null)
+            return existing;
+
+        var entity = new OkregWyborczy
         {
-            val = new OkregWyborczy { Id = Guid.NewGuid(), NumerOkregu = numer, RodzajWyborowId = rodzajWyborowId };
-            db.OkregWyborczy.Add(val);
-        }
+            Id = Guid.NewGuid(),
+            NumerOkregu = numer,
+            RodzajWyborowId = rodzajWyborowId
+        };
 
-        await SetToCacheDto(key, OkregWyborczyDto.FromEntity(val), ct);
-        return val;
+        db.OkregWyborczy.Add(entity);
+
+        await SetToCacheDto(key, OkregWyborczyDto.FromEntity(entity), ct);
+
+        return entity;
     }
 
     public async Task GetOrCreateSzczegolyOkregu(SzczegolyOkreguDto szczegolyOkregu, CancellationToken ct = default)
@@ -160,7 +195,16 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
 
         if (szczegoly == null)
         {
-            szczegoly = new SzczegolyOkregu { OkregId = szczegolyOkregu.OkregId, RokWyborow = szczegolyOkregu.RokWyborow, Mieszkancy = szczegolyOkregu.Mieszkancy, Uprawnieni = szczegolyOkregu.Uprawnieni };
+            szczegoly = new SzczegolyOkregu
+            {
+                OkregId = szczegolyOkregu.OkregId, 
+                RokWyborow = szczegolyOkregu.RokWyborow, 
+                Mieszkancy = szczegolyOkregu.Mieszkancy, 
+                Uprawnieni = szczegolyOkregu.Uprawnieni,
+                LiczbaKandydatow =  szczegolyOkregu.LiczbaKandydatow,
+                LiczbaList = szczegolyOkregu.LiczbaList,
+                LiczbaMandatow = szczegolyOkregu.LiczbaMandatow
+            };
             db.SzczegolyOkregow.Add(szczegoly);
         }
         else
@@ -186,7 +230,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
             var tracked = await db.KomitetyWyborcze.FindAsync(new object[] { dto.Id }, ct);
             if (tracked != null) return tracked;
 
-            return new KomitetWyborczy { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot, RodzajKomitetuId = dto.RodzajKomitetuId };
+            return new KomitetWyborczy { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot};
         }
 
         var local = db.KomitetyWyborcze.Local.FirstOrDefault(k => k.Nazwa == nazwa);

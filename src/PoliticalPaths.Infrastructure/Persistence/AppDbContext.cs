@@ -31,7 +31,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ListaWyborcza> ListaWyborcza => Set<ListaWyborcza>();
     public DbSet<StartWyborczy> StartyWyborcze => Set<StartWyborczy>();
     public DbSet<WynikiWyborow> WynikiWyborow => Set<WynikiWyborow>();
-    public DbSet<Kadencja> Kadencje => Set<Kadencja>();
     public DbSet<Mandat> Mandaty => Set<Mandat>();
     public DbSet<ZdarzenieMandatowe> ZdarzeniaMandatowe => Set<ZdarzenieMandatowe>();
 

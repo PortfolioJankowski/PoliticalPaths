@@ -15,5 +15,6 @@ public sealed class Polityk
     public string? InformacjeDodatkowe { get; set; }
     public ICollection<StartWyborczy> StartyWyborcze { get; set; } = new List<StartWyborczy>();
     public ICollection<PartiaCzlonkostwo> Czlonkostwa { get; set; } = new List<PartiaCzlonkostwo>();
+    public ICollection<PoliticalPaths.Domain.Kadencje.Mandat> Mandaty { get; set; } = new List<PoliticalPaths.Domain.Kadencje.Mandat>();
 
 }

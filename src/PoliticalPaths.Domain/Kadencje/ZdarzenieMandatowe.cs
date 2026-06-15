@@ -12,12 +12,3 @@ public sealed class ZdarzenieMandatowe
     public string? Opis { get; set; }
     public string? DokumentReferencyjny { get; set; }
 }
-
-public enum TypZdarzeniaMandatowego
-{
-    Objecie = 1,          // Ślubowanie
-    Wygasniecie = 2,      // Śmierć, utrata praw wyborczych
-    Zrzeczenie = 3,       // Rezygnacja
-    ObjecieInnejFunkcji = 4, // Np. wybór do PE, na wójta itd.
-    KoniecKadencji = 5    // Naturalny koniec
-}

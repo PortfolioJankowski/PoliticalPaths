@@ -28,7 +28,6 @@ public interface IAppDbContext
     DbSet<ListaWyborcza> ListaWyborcza { get; }
     DbSet<StartWyborczy> StartyWyborcze { get; }
     DbSet<WynikiWyborow> WynikiWyborow { get; }
-    DbSet<Kadencja> Kadencje { get; }
     DbSet<Mandat> Mandaty { get; }
     DbSet<ZdarzenieMandatowe> ZdarzeniaMandatowe { get; }
 

@@ -17,87 +17,72 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     private readonly DistributedCacheEntryOptions _cacheOptions = new DistributedCacheEntryOptions()
         .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
 
-    private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+    private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
         MaxDepth = 64,
     };
 
+    // Lokalne cache'owanie w ramach cyklu życia Scoped (jedna paczka importu)
+    // To znacznie przyspiesza procesowanie tysięcy wierszy unikając serializacji IDistributedCache
+    private readonly Dictionary<string, object> _localCache = new();
 
-    private readonly string[] _bezpartyjnyOkreslenia = new[] { "nie nale�y do partii politycznej" };
+    private readonly string[] _bezpartyjnyOkreslenia = { "nie należy do partii politycznej" };
 
-    private async Task<TDto?> GetFromCacheDto<TDto>(string key, CancellationToken ct) where TDto : class
+    private async Task<T?> GetOrAddAsync<T>(string key, Func<Task<T?>> factory, CancellationToken ct) where T : class
     {
-        var cached = await cache.GetStringAsync(key, ct);
-        return cached == null ? null : JsonSerializer.Deserialize<TDto>(cached, _serializerOptions);
-    }
+        if (_localCache.TryGetValue(key, out var cached))
+            return (T)cached;
 
-    private async Task SetToCacheDto<TDto>(string key, TDto value, CancellationToken ct) where TDto : class
-    {
-        var serialized = JsonSerializer.Serialize(value, options: _serializerOptions);
-        await cache.SetStringAsync(key, serialized, _cacheOptions, ct);
+        // Próba z IDistributedCache (opcjonalnie, dla wydajności można pominąć jeśli _localCache wystarczy)
+        var dtoKey = $"dto_{key}";
+        var cachedJson = await cache.GetStringAsync(dtoKey, ct);
+        if (cachedJson != null)
+        {
+            var dto = JsonSerializer.Deserialize<T>(cachedJson, _serializerOptions);
+            if (dto != null)
+            {
+                _localCache[key] = dto;
+                return dto;
+            }
+        }
+
+        var result = await factory();
+        if (result != null)
+        {
+            _localCache[key] = result;
+            // Zapisujemy do IDistributedCache tylko DTO lub kluczowe dane, tu upraszczamy
+            // Warto rozważyć czy IDistributedCache jest tu w ogóle potrzebny przy masowym imporcie
+        }
+
+        return result;
     }
 
     public async Task<RodzajeWyborow> GetOrCreateSlownikWyborowAsync(string nazwa, PoziomWyborow poziom = PoziomWyborow.Krajowy, CancellationToken ct = default)
     {
-        var key = $"slownik_{nazwa}";
-        var dto = await GetFromCacheDto<RodzajeWyborowDto>(key, ct);
-        if (dto != null)
-        {
-            // return tracked if present
-            var local = db.RodzajeWyborow.Local.FirstOrDefault(r => r.Id == dto.Id);
-            if (local != null) return local;
+        var key = $"rodzaj_{nazwa}";
+        if (_localCache.TryGetValue(key, out var cached)) return (RodzajeWyborow)cached;
 
-            var tracked = await db.RodzajeWyborow.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+        var val = db.RodzajeWyborow.Local.FirstOrDefault(s => s.Nazwa == nazwa)
+                 ?? await db.RodzajeWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
 
-            // return plain domain object (not tracked)
-            return new RodzajeWyborow { Id = dto.Id, Nazwa = dto.Nazwa, Poziom = (PoziomWyborow)dto.Poziom };
-        }
-
-        var existingLocal = db.RodzajeWyborow.Local.FirstOrDefault(s => s.Nazwa == nazwa);
-        if (existingLocal != null) return existingLocal;
-
-        var val = await db.RodzajeWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
         if (val == null)
         {
             val = new RodzajeWyborow { Id = Guid.NewGuid(), Nazwa = nazwa, Poziom = poziom };
             db.RodzajeWyborow.Add(val);
         }
 
-        await SetToCacheDto(key, RodzajeWyborowDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
     public async Task<Wybory> GetOrCreateWyboryAsync(WyboryDto wyboryDto, CancellationToken ct = default)
     {
         var key = $"wybory_{wyboryDto.RodzajWyborowId}_{wyboryDto.DataWyborow}";
-        var dto = await GetFromCacheDto<WyboryDto>(key, ct);
-        if (dto != null)
-        {
-            var localById = db.Wybory.Local.FirstOrDefault(w => w.Id == dto.Id);
-            if (localById != null) return localById;
+        if (_localCache.TryGetValue(key, out var cached)) return (Wybory)cached;
 
-            var tracked = await db.Wybory.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+        var val = db.Wybory.Local.FirstOrDefault(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow)
+                 ?? await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow, ct);
 
-            return new Wybory
-            {
-                Id = dto.Id,
-                RodzajWyborowId = dto.RodzajWyborowId,
-                DataOgloszenia = dto.DataOgloszenia,
-                DataWyborow = dto.DataWyborow,
-                Ordynacja = (OrdynacjaWyborcza)dto.Ordynacja,
-                Tura = dto.Tura.HasValue ? (TuraWyborow?)dto.Tura.Value : null,
-                CzyPrzedterminowe = dto.CzyPrzedterminowe
-            };
-        }
-
-        var local = db.Wybory.Local
-            .FirstOrDefault(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow);
-        
-        if (local != null) return local;
-
-        var val = await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow, ct);
         if (val == null)
         {
             val = new Wybory
@@ -106,176 +91,96 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
                 RodzajWyborowId = wyboryDto.RodzajWyborowId,
                 DataWyborow = wyboryDto.DataWyborow,
                 Ordynacja = wyboryDto.Ordynacja,
-               CzyPrzedterminowe = wyboryDto.CzyPrzedterminowe,
-               DataOgloszenia =  wyboryDto.DataOgloszenia,
-               Tura = wyboryDto.Tura        
+                CzyPrzedterminowe = wyboryDto.CzyPrzedterminowe,
+                DataOgloszenia = wyboryDto.DataOgloszenia,
+                Tura = wyboryDto.Tura
             };
-
-            if (wyboryDto.DataOgloszenia.HasValue)
-            {
-                val.DataOgloszenia = wyboryDto.DataOgloszenia.Value;
-            }
-
             db.Wybory.Add(val);
         }
 
-        await SetToCacheDto(key, WyboryDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
-    public async Task<OkregWyborczy> GetOrCreateOkregAsync(
-        int numer,
-        Guid rodzajWyborowId,
-        CancellationToken ct = default)
+    public async Task<OkregWyborczy> GetOrCreateOkregAsync(int numer, Guid rodzajWyborowId, CancellationToken ct = default)
     {
         var key = $"okreg_{rodzajWyborowId}_{numer}";
+        if (_localCache.TryGetValue(key, out var cached)) return (OkregWyborczy)cached;
 
-        var dto = await GetFromCacheDto<OkregWyborczyDto>(key, ct);
-        if (dto != null)
+        var val = db.OkregWyborczy.Local.FirstOrDefault(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId)
+                 ?? await db.OkregWyborczy.FirstOrDefaultAsync(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId, ct);
+
+        if (val == null)
         {
-            var tracked = await db.OkregWyborczy.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null)
-                return tracked;
-
-            var byBusinessKey = await db.OkregWyborczy
-                .FirstOrDefaultAsync(o =>
-                    o.NumerOkregu == numer &&
-                    o.RodzajWyborowId == rodzajWyborowId, ct);
-
-            if (byBusinessKey != null)
+            val = new OkregWyborczy
             {
-                return byBusinessKey;
-            }
-
-            var created = new OkregWyborczy
-            {
-                Id = dto.Id,
+                Id = Guid.NewGuid(),
                 NumerOkregu = numer,
                 RodzajWyborowId = rodzajWyborowId
             };
-
-            db.OkregWyborczy.Add(created);
-            return created;
+            db.OkregWyborczy.Add(val);
         }
 
-        var local = db.OkregWyborczy.Local
-            .FirstOrDefault(o => o.NumerOkregu == numer &&
-                                 o.RodzajWyborowId == rodzajWyborowId);
-
-        if (local != null)
-            return local;
-
-        var existing = await db.OkregWyborczy
-            .FirstOrDefaultAsync(o =>
-                o.NumerOkregu == numer &&
-                o.RodzajWyborowId == rodzajWyborowId, ct);
-
-        if (existing != null)
-            return existing;
-
-        var entity = new OkregWyborczy
-        {
-            Id = Guid.NewGuid(),
-            NumerOkregu = numer,
-            RodzajWyborowId = rodzajWyborowId
-        };
-
-        db.OkregWyborczy.Add(entity);
-
-        await SetToCacheDto(key, OkregWyborczyDto.FromEntity(entity), ct);
-
-        return entity;
+        _localCache[key] = val;
+        return val;
     }
 
-    public async Task GetOrCreateSzczegolyOkregu(SzczegolyOkreguDto szczegolyOkregu, CancellationToken ct = default)
+    public async Task GetOrCreateSzczegolyOkregu(SzczegolyOkreguDto dto, CancellationToken ct = default)
     {
-        var szczegoly = await db.SzczegolyOkregow.FindAsync(
-            new object[] { szczegolyOkregu.OkregId, szczegolyOkregu.RokWyborow },
-            ct);
+        // Szczegóły okręgu rzadko się powtarzają w ramach jednej paczki dla tego samego roku, 
+        // ale sprawdzamy Local dla wydajności.
+        var szczegoly = db.SzczegolyOkregow.Local.FirstOrDefault(s => s.OkregId == dto.OkregId && s.RokWyborow == dto.RokWyborow)
+                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.RokWyborow }, ct);
 
         if (szczegoly == null)
         {
             szczegoly = new SzczegolyOkregu
             {
-                OkregId = szczegolyOkregu.OkregId, 
-                RokWyborow = szczegolyOkregu.RokWyborow, 
-                Mieszkancy = szczegolyOkregu.Mieszkancy, 
-                Uprawnieni = szczegolyOkregu.Uprawnieni,
-                LiczbaKandydatow =  szczegolyOkregu.LiczbaKandydatow,
-                LiczbaList = szczegolyOkregu.LiczbaList,
-                LiczbaMandatow = szczegolyOkregu.LiczbaMandatow
+                OkregId = dto.OkregId,
+                RokWyborow = dto.RokWyborow,
+                Mieszkancy = dto.Mieszkancy,
+                Uprawnieni = dto.Uprawnieni,
+                LiczbaKandydatow = dto.LiczbaKandydatow,
+                LiczbaList = dto.LiczbaList,
+                LiczbaMandatow = dto.LiczbaMandatow
             };
             db.SzczegolyOkregow.Add(szczegoly);
         }
         else
         {
-            szczegoly.Mieszkancy = szczegolyOkregu.Mieszkancy;
-            szczegoly.Uprawnieni = szczegolyOkregu.Uprawnieni;
-            szczegoly.LiczbaKandydatow = szczegolyOkregu.LiczbaKandydatow;
-            szczegoly.LiczbaList = szczegolyOkregu.LiczbaList;
-            szczegoly.LiczbaMandatow = szczegolyOkregu.LiczbaMandatow;
-            szczegoly.RokWyborow = szczegolyOkregu.RokWyborow;
+            szczegoly.Mieszkancy = dto.Mieszkancy;
+            szczegoly.Uprawnieni = dto.Uprawnieni;
+            szczegoly.LiczbaKandydatow = dto.LiczbaKandydatow;
+            szczegoly.LiczbaList = dto.LiczbaList;
+            szczegoly.LiczbaMandatow = dto.LiczbaMandatow;
         }
     }
 
     public async Task<KomitetWyborczy> GetOrCreateKomitetAsync(string nazwa, CancellationToken ct = default)
     {
         var key = $"komitet_{nazwa}";
-        var dto = await GetFromCacheDto<KomitetWyborczyDto>(key, ct);
-        if (dto != null)
-        {
-            var localById = db.KomitetyWyborcze.Local.FirstOrDefault(k => k.Id == dto.Id);
-            if (localById != null) return localById;
+        if (_localCache.TryGetValue(key, out var cached)) return (KomitetWyborczy)cached;
 
-            var tracked = await db.KomitetyWyborcze.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+        var val = db.KomitetyWyborcze.Local.FirstOrDefault(k => k.Nazwa == nazwa)
+                 ?? await db.KomitetyWyborcze.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
 
-            return new KomitetWyborczy { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot};
-        }
-
-        var local = db.KomitetyWyborcze.Local.FirstOrDefault(k => k.Nazwa == nazwa);
-        if (local != null) return local;
-
-        var val = await db.KomitetyWyborcze.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
         if (val == null)
         {
             val = new KomitetWyborczy { Id = Guid.NewGuid(), Nazwa = nazwa };
             db.KomitetyWyborcze.Add(val);
         }
 
-        await SetToCacheDto(key, KomitetWyborczyDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
     public async Task<ListaWyborcza> GetOrCreateListaAsync(Guid okregId, Guid wyboryId, Guid komitetId, int numer, CancellationToken ct = default)
     {
         var key = $"lista_{wyboryId}_{okregId}_{numer}";
-        var dto = await GetFromCacheDto<ListaWyborczaDto>(key, ct);
-        if (dto != null)
-        {
-            var localById = db.ListaWyborcza.Local.FirstOrDefault(l => l.Id == dto.Id);
-            if (localById != null) return localById;
+        if (_localCache.TryGetValue(key, out var cached)) return (ListaWyborcza)cached;
 
-            var tracked = await db.ListaWyborcza.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
-
-            return new ListaWyborcza
-            {
-                Id = dto.Id,
-                OkregId = dto.OkregId,
-                WyboryId = dto.WyboryId,
-                KomitetWyborczyId = dto.KomitetWyborczyId,
-                NumerListy = dto.NumerListy
-            };
-        }
-
-        var local = db.ListaWyborcza.Local.FirstOrDefault(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer);
-        if (local != null) return local;
-
-        var val = await db.ListaWyborcza.FirstOrDefaultAsync(l =>
-            l.OkregId == okregId &&
-            l.WyboryId == wyboryId &&
-            l.NumerListy == numer, ct);
+        var val = db.ListaWyborcza.Local.FirstOrDefault(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer)
+                 ?? await db.ListaWyborcza.FirstOrDefaultAsync(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer, ct);
 
         if (val == null)
         {
@@ -290,47 +195,34 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
             db.ListaWyborcza.Add(val);
         }
 
-        await SetToCacheDto(key, ListaWyborczaDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
-    public async Task<Partia> GetOrCreatePartiaAsync(string nazwa,
-        CancellationToken ct = default)
+    public async Task<Partia> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(nazwa) ||  _bezpartyjnyOkreslenia.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
-           return null!;
+        if (string.IsNullOrWhiteSpace(nazwa) || _bezpartyjnyOkreslenia.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
+            return null!;
 
         var key = $"partia_{nazwa}";
-        var dto = await GetFromCacheDto<PartiaDto>(key, ct);
-        if (dto != null)
-        {
-            var localById = db.Partie.Local.FirstOrDefault(k => k.Id == dto.Id);
-            if (localById != null) return localById;
+        if (_localCache.TryGetValue(key, out var cached)) return (Partia)cached;
 
-            var tracked = await db.Partie.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+        var val = db.Partie.Local.FirstOrDefault(p => p.Nazwa == nazwa)
+                 ?? await db.Partie.FirstOrDefaultAsync(p => p.Nazwa == nazwa, ct);
 
-            var nowaPartia = new Partia { Id = dto.Id, Nazwa = dto.Nazwa, Skrot = dto.Skrot, DataZalozenia = dto.DataZalozenia, DataZakonczeniaDzialalnosci = dto.DataZakonczeniaDzialalnosci };
-            db.Partie.Attach(nowaPartia);
-            return nowaPartia;
-        }
-
-        var local = db.Partie.Local.FirstOrDefault(k => k.Nazwa == nazwa);
-        if (local != null) return local;
-
-        var val = await db.Partie.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
         if (val == null)
         {
             val = new Partia { Id = Guid.NewGuid(), Nazwa = nazwa };
             db.Partie.Add(val);
         }
 
-        await SetToCacheDto(key, PartiaDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
     public WynikiWyborow CreateWynikiAsync(int glosy, bool czyMandat)
     {
+        // Wyniki są unikalne dla każdego startu, nie keszujemy ich po kluczu biznesowym
         var wyniki = new WynikiWyborow
         {
             Id = Guid.NewGuid(),
@@ -345,58 +237,23 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     public async Task<Polityk> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default)
     {
         var key = $"polityk_{nazwisko}_{imie}";
-        var dto = await GetFromCacheDto<PolitykDto>(key, ct);
-        if (dto != null)
-        {
-            var localById = db.Politycy.Local.FirstOrDefault(p => p.Id == dto.Id);
-            if (localById != null) return localById;
+        if (_localCache.TryGetValue(key, out var cached)) return (Polityk)cached;
 
-            var tracked = await db.Politycy.FindAsync(new object[] { dto.Id }, ct);
-            if (tracked != null) return tracked;
+        var val = db.Politycy.Local.FirstOrDefault(p => p.Imie == imie && p.Nazwisko == nazwisko)
+                 ?? await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == nazwisko && p.Imie == imie, ct);
 
-            return new Polityk
-            {
-                Id = dto.Id,
-                Imie = dto.Imie,
-                Nazwisko = dto.Nazwisko,
-                DataUrodzenia = dto.DataUrodzenia,
-                MiejsceUrodzenia = dto.MiejsceUrodzenia,
-                Email = dto.Email,
-                InformacjeDodatkowe = dto.InformacjeDodatkowe
-            };
-        }
-
-        var local = db.Politycy.Local.FirstOrDefault(p => p.Imie == imie && p.Nazwisko == nazwisko);
-        if (local != null) return local;
-
-        var val = await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == nazwisko && p.Imie == imie, ct);
         if (val == null)
         {
             val = new Polityk { Id = Guid.NewGuid(), Imie = imie, Nazwisko = nazwisko };
             db.Politycy.Add(val);
         }
 
-        await SetToCacheDto(key, PolitykDto.FromEntity(val), ct);
+        _localCache[key] = val;
         return val;
     }
 
     public void ClearCache()
     {
-        // IDistributedCache doesn't have a simple Clear() method. 
-        // In a real scenario with Redis, we would usually not clear it globally here, 
-        // but for compatibility with the interface and the user's intent:
-        // We might want to use a prefix for each batch, but for now, we'll leave it as is or do nothing.
-    }
-
-    private async Task<T?> GetFromCache<T>(string key, CancellationToken ct) where T : class
-    {
-        var cached = await cache.GetStringAsync(key, ct);
-        return cached == null ? null : JsonSerializer.Deserialize<T>(cached);
-    }
-
-    private async Task SetToCache<T>(string key, T value, CancellationToken ct) where T : class
-    {
-        var serialized = JsonSerializer.Serialize(value,  options: _serializerOptions);
-        await cache.SetStringAsync(key, serialized, _cacheOptions, ct);
+        _localCache.Clear();
     }
 }

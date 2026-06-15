@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Abstractions.Persistence;
@@ -16,6 +17,7 @@ public sealed class ImportSyncService(
     IPipelineRegistry pipelineRegistry,
     IFileChecksumService checksumService,
     ITransformationExecutor transformationExecutor,
+    IMandateGeneratorService mandateGenerator,
     ILogger<ImportSyncService> logger) : IImportSyncService
 {
     public async Task<ImportSyncResult> SyncAllAsync(
@@ -94,6 +96,13 @@ public sealed class ImportSyncService(
         batch.Finish();
      
         await db.SaveChangesAsync(cancellationToken);
+
+        // Generowanie mandatów po eksporcie danych do bazy
+        var elections = await db.Wybory.ToListAsync(cancellationToken);
+        foreach (var election in elections)
+        {
+            await mandateGenerator.GenerateMandatesForElectionAsync(election.Id, cancellationToken);
+        }
 
         return new PipelineSyncSummary(
             pipeline.PipelineKey,

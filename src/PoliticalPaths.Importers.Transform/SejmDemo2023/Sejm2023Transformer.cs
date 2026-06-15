@@ -85,7 +85,7 @@ public sealed class Sejm2023Transformer(
 
         if (nrOkregu == null) throw new Exception("Brak numeru okręgu");
 
-        var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, wyboryId, ct);
+        var okreg = await entityResolver.GetOrCreateOkregAsync(nrOkregu.Value, rodzajWyborowId, ct);
         
         var szczegolyOkregu = new SzczegolyOkreguDto(
             OkregId: okreg.Id,

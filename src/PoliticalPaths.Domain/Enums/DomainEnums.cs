@@ -40,9 +40,28 @@ public enum PoziomJednostki
 
 public enum StatusMandatu
 {
-    Aktywny = 0,
-    Wygasniety = 1,
-    Nieobjety = 2
+    Oczekujacy = 0, // Wybrany, ale jeszcze nie zaprzysiężony
+    Aktywny = 1,    // Sprawuje mandat
+    Wygasniety = 2, // Mandat wygasł przedwcześnie (śmierć, rezygnacja)
+    Zakonczony = 3, // Koniec kadencji
+    Nieobjety = 4   // Wybrany, ale zrezygnował przed ślubowaniem
+}
+
+public enum TypObjeciaMandatu
+{
+    WyborBezposredni = 0,
+    Sukcesja = 1 // Wstąpienie na wolne miejsce
+}
+
+public enum TypZdarzeniaMandatowego
+{
+    Wybor = 1,            // Zdobycie mandatu w głosowaniu
+    Objecie = 2,          // Ślubowanie / Zaprzysiężenie
+    Wstąpienie = 3,       // Objęcie mandatu w trakcie kadencji (sukcesja)
+    Wygasniecie = 4,      // Śmierć, utrata praw wyborczych
+    Zrzeczenie = 5,       // Rezygnacja
+    ObjecieInnejFunkcji = 6, // Np. wybór do PE, na wójta itd.
+    KoniecKadencji = 7    // Naturalny koniec
 }
 
 public enum PowodWygasnieciaMandatu

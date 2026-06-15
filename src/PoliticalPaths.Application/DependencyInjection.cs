@@ -25,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<ITransformationErrorRecorder, TransformationErrorRecorder>();
         services.AddScoped<IPipelineRegistry, PipelineRegistry>();
         services.AddScoped<IClubMembershipService, ClubMembershipService>();
+        services.AddScoped<IMandateGeneratorService, MandateGeneratorService>();
+        services.AddScoped<IMandateEventService, MandateEventService>();
         return services;
     }
 }

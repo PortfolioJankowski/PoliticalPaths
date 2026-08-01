@@ -7,13 +7,13 @@ using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
+using PoliticalPaths.Application.Services;
 using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 
 //TABELA MANDATY JEST PUSTA
-//Spróbować jakieś SQLe stworzyć do pokazania finalnego
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
 [ImportTransformer("Sejm2023")]
@@ -137,10 +137,9 @@ public sealed class Sejm2023Transformer(
             listaId = lista.Id;
         }
 
-        var parts = nazwiskoImiona.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var nazwisko = parts.Length > 0 ? parts[0] : UnknownValue;
-        var imie = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : UnknownValue;
-        var polityk = await entityResolver.GetOrCreatePolitykAsync(imie, nazwisko, ct);
+        var imieNazwiskoDto = ExtractNamesAndSurnameService.Extract(nazwiskoImiona, NameExtractingOptions.GetDefault());
+        
+        var polityk = await entityResolver.GetOrCreatePolitykAsync(imieNazwiskoDto, ct);
 
         var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
         if (partia != null)

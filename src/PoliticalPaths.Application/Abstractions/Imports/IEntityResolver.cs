@@ -1,4 +1,5 @@
 using PoliticalPaths.Application.Dtos;
+using PoliticalPaths.Application.Services;
 using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
@@ -23,7 +24,7 @@ public interface IEntityResolver
     
     Task<Partia> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default);
     
-    Task<Polityk> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default);
+    Task<Polityk> GetOrCreatePolitykAsync(NamesSurnameDto imionaNazwisko, CancellationToken ct = default);
 
     WynikiWyborow CreateWynikiAsync(int glosy, bool czyMandat);
 

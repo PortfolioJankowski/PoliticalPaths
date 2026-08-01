@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Application.Dtos;
+using PoliticalPaths.Application.Services;
 using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
@@ -234,17 +235,17 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return wyniki;
     }
 
-    public async Task<Polityk> GetOrCreatePolitykAsync(string imie, string nazwisko, CancellationToken ct = default)
+    public async Task<Polityk> GetOrCreatePolitykAsync(NamesSurnameDto imionaNazwisko, CancellationToken ct = default)
     {
-        var key = $"polityk_{nazwisko}_{imie}";
+        var key = $"polityk_{imionaNazwisko.Surname}_{imionaNazwisko.Name}";
         if (_localCache.TryGetValue(key, out var cached)) return (Polityk)cached;
 
-        var val = db.Politycy.Local.FirstOrDefault(p => p.Imie == imie && p.Nazwisko == nazwisko)
-                 ?? await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == nazwisko && p.Imie == imie, ct);
+        var val = db.Politycy.Local.FirstOrDefault(p => p.Imie == imionaNazwisko.Name && p.Nazwisko == imionaNazwisko.Surname && p.DrugieImie == imionaNazwisko.SecondName)
+                 ?? await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == imionaNazwisko.Surname && p.Imie == imionaNazwisko.Name && p.DrugieImie == imionaNazwisko.SecondName, ct);
 
         if (val == null)
         {
-            val = new Polityk { Id = Guid.NewGuid(), Imie = imie, Nazwisko = nazwisko };
+            val = new Polityk { Id = Guid.NewGuid(), Imie = imionaNazwisko.Name, Nazwisko = imionaNazwisko.Surname, DrugieImie = imionaNazwisko.SecondName };
             db.Politycy.Add(val);
         }
 

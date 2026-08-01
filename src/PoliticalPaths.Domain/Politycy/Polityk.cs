@@ -7,6 +7,7 @@ public sealed class Polityk
 {
     public Guid Id { get; set; }
     public string Imie { get; set; } = default!;
+    public string DrugieImie { get; set; } = "Nieznane";
     public string Nazwisko { get; set; } = default!;
     public DateOnly? DataUrodzenia { get; set; }
     public string? MiejsceUrodzenia { get; set; }

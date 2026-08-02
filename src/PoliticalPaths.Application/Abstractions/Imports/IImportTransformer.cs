@@ -1,5 +1,5 @@
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Imports.ExcelDto;
-using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 
@@ -12,7 +12,8 @@ public interface IImportTransformer
     Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
         ExcelWorkbookModel workbook,
-        PipelineExecutionContext context,
+        string pipelineKey,
+        ImportSourceDefinition source,
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }

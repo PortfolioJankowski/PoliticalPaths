@@ -10,4 +10,8 @@ public sealed class SzczegolyOkregu
     public int LiczbaMandatow { get; set; }
     public int LiczbaList { get; set; }
     public int LiczbaKandydatow { get; set; }
+    public Wybory Wybory { get; set; }
+    // jeżeli będą wybory uzupełniające to dla danego roku wyborczego może być więcej niż 1 encja wybory
+    // dlatego każde szczegóły okręgu przynależą jednym wyborom
+    public Guid WyboryId { get; set; } 
 }

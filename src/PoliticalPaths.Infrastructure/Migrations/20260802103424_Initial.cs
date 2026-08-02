@@ -112,7 +112,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Imie = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DrugieImie = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                    DrugieImie = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Nazwisko = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -196,30 +196,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         name: "FK_ImportFiles_ImportBatches_ImportBatchId",
                         column: x => x.ImportBatchId,
                         principalTable: "ImportBatches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "SzczegolyOkregow",
-                columns: table => new
-                {
-                    OkregId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    RokWyborow = table.Column<int>(type: "int", nullable: false),
-                    Mieszkancy = table.Column<int>(type: "int", nullable: false),
-                    Uprawnieni = table.Column<int>(type: "int", nullable: false),
-                    LiczbaMandatow = table.Column<int>(type: "int", nullable: false),
-                    LiczbaList = table.Column<int>(type: "int", nullable: false),
-                    LiczbaKandydatow = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SzczegolyOkregow", x => new { x.OkregId, x.RokWyborow });
-                    table.ForeignKey(
-                        name: "FK_SzczegolyOkregow_OkregWyborczy_OkregId",
-                        column: x => x.OkregId,
-                        principalTable: "OkregWyborczy",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -387,6 +363,37 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "SzczegolyOkregow",
+                columns: table => new
+                {
+                    OkregId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WyboryId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    RokWyborow = table.Column<int>(type: "int", nullable: false),
+                    Mieszkancy = table.Column<int>(type: "int", nullable: false),
+                    Uprawnieni = table.Column<int>(type: "int", nullable: false),
+                    LiczbaMandatow = table.Column<int>(type: "int", nullable: false),
+                    LiczbaList = table.Column<int>(type: "int", nullable: false),
+                    LiczbaKandydatow = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SzczegolyOkregow", x => new { x.OkregId, x.WyboryId });
+                    table.ForeignKey(
+                        name: "FK_SzczegolyOkregow_OkregWyborczy_OkregId",
+                        column: x => x.OkregId,
+                        principalTable: "OkregWyborczy",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SzczegolyOkregow_Wybory_WyboryId",
+                        column: x => x.WyboryId,
+                        principalTable: "Wybory",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "TransformationErrors",
                 columns: table => new
                 {
@@ -519,6 +526,11 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "IX_StartyWyborcze_PolitykId",
                 table: "StartyWyborcze",
                 column: "PolitykId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SzczegolyOkregow_WyboryId",
+                table: "SzczegolyOkregow",
+                column: "WyboryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransformationErrors_ImportRowId",

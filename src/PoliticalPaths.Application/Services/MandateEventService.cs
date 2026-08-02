@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions;
@@ -75,3 +76,4 @@ public sealed class MandateEventService(
         }
     }
 }
+

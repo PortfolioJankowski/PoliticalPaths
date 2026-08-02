@@ -17,7 +17,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -395,6 +395,10 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<DateOnly?>("DataUrodzenia")
                         .HasColumnType("date");
 
+                    b.Property<string>("DrugieImie")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Email")
                         .HasColumnType("longtext");
 
@@ -565,8 +569,8 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("OkregId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("RokWyborow")
-                        .HasColumnType("int");
+                    b.Property<Guid>("WyboryId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("LiczbaKandydatow")
                         .HasColumnType("int");
@@ -580,10 +584,15 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<int>("Mieszkancy")
                         .HasColumnType("int");
 
+                    b.Property<int>("RokWyborow")
+                        .HasColumnType("int");
+
                     b.Property<int>("Uprawnieni")
                         .HasColumnType("int");
 
-                    b.HasKey("OkregId", "RokWyborow");
+                    b.HasKey("OkregId", "WyboryId");
+
+                    b.HasIndex("WyboryId");
 
                     b.ToTable("SzczegolyOkregow");
                 });
@@ -730,7 +739,15 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PoliticalPaths.Domain.Wybory.Wybory", "Wybory")
+                        .WithMany()
+                        .HasForeignKey("WyboryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Okreg");
+
+                    b.Navigation("Wybory");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Wybory.Wybory", b =>

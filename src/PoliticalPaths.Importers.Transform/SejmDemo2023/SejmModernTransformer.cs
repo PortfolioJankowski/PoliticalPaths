@@ -1,44 +1,40 @@
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
-using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Application.Services;
 using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
+using PoliticalPaths.Shared;
 
-//TABELA MANDATY JEST PUSTA
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
-[ImportTransformer("Sejm2023")]
-public sealed class Sejm2023Transformer(
+[ImportTransformer("Sejm2023/19")]
+public sealed class SejmModernTransformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
     ITransformationErrorRecorder errorRecorder,
-    ILogger<Sejm2023Transformer> logger,
+    ILogger<SejmModernTransformer> logger,
     IClubMembershipService clubService)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
-    private const string DistrictFileMarker = "okregi";
-    private static readonly string[] TrueValues = ["tak", "true", "1"];
-    private const string UnknownValue = "Nieznane";
-
-    public override string PipelineKey => "Sejm2023";
+    public override string PipelineKey => "Sejm2023/19";
 
     public override async Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
         ExcelWorkbookModel workbook,
-        PipelineExecutionContext context,
+        string pipelineKey,
+        ImportSourceDefinition source,
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var source = context.Sources.FirstOrDefault()!;
         var electionName = $"{source.Assembly} {source.ElectionDate.Year.ToString()}";
 
         var rodzajWyborow = await entityResolver.GetOrCreateSlownikWyborowAsync(electionName, ct: cancellationToken);
@@ -60,9 +56,9 @@ public sealed class Sejm2023Transformer(
 
         var result = await ProcessRowsAsync(file, workbook, async (excelRow, importRow, ct) =>
         {
-            if (file.StoragePath.Contains(DistrictFileMarker))
+            if (file.StoragePath.Contains(TransformationConsts.DISTRICT_FILE_MARKER))
             {
-                await ProcessDistrictRow(excelRow, importRow, wybory.Id, rodzajWyborow.Id,  rok, ct);
+                await ProcessDistrictRow(excelRow, importRow, wybory, rodzajWyborow.Id,  rok, ct);
             }
             else
             {
@@ -74,7 +70,7 @@ public sealed class Sejm2023Transformer(
         return result;
     }
 
-    private async Task ProcessDistrictRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, Guid rodzajWyborowId, int rok, CancellationToken ct)
+    private async Task ProcessDistrictRow(RawRowDto excelRow, ImportRow importRow, Wybory wybory, Guid rodzajWyborowId, int rok, CancellationToken ct)
     {
         var nrOkregu = ParseInt(excelRow, DistrictsHeaders.NumerOkręgu);
         var liczbaMandatow = ParseInt(excelRow, DistrictsHeaders.LiczbaMandatów) ?? 0;
@@ -95,7 +91,8 @@ public sealed class Sejm2023Transformer(
             Uprawnieni: uprawnieni,
             LiczbaMandatow: liczbaMandatow,
             LiczbaList: liczbaList ?? 0,
-            LiczbaKandydatow: liczbaKandydatow ?? 0
+            LiczbaKandydatow: liczbaKandydatow ?? 0,
+            Wybory: wybory
         );
 
         await entityResolver.GetOrCreateSzczegolyOkregu(szczegolyOkregu);
@@ -117,12 +114,15 @@ public sealed class Sejm2023Transformer(
         
         if (!string.IsNullOrWhiteSpace(popierajacaPartiaNazwa))
         {
-            popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
-            popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierany przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+            if (popierajacaPartiaNazwa.StartsWith("popiera"))
+            {
+                popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+                popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierany przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+            }
         }
 
         var glosy = ParseInt(excelRow, CandidatesHeaders.LiczbaGłosów) ?? 0;
-        var czyMandat = ParseBool(excelRow, CandidatesHeaders.CzyPrzyznanoMandat, TrueValues);
+        var czyMandat = ParseBool(excelRow, CandidatesHeaders.CzyPrzyznanoMandat, TransformationConsts.TRUE_VALUES);
 
         if (nrOkregu == null || nazwiskoImiona == null || komitetNazwa == null)
             throw new Exception("Brak wymaganych danych kandydata");

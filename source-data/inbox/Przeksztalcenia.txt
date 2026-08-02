@@ -1,0 +1,5 @@
+1. Dla kandydatów 2019:
+- zmieniono kolejność kolumn, tak aby odwzorować plik z 2023
+- dodano kolumnę łączącą imiona i nazwisko na wzór pliku z 2023
+
+Dla okręgów 2019 również zmieniono układ kolumn.

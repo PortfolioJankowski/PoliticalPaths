@@ -2,10 +2,10 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
-using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Shared.Hashing;
@@ -21,15 +21,16 @@ public abstract class ExcelFileTransformerBase(
     ILogger logger) : IImportTransformer
 {
     protected readonly IAppDbContext Db = db;
-    protected readonly ITransformationErrorRecorder ErrorRecorder = errorRecorder;
-    protected readonly ILogger Logger = logger;
+    private readonly ITransformationErrorRecorder ErrorRecorder = errorRecorder;
+    private readonly ILogger _logger = logger;
 
     public abstract string PipelineKey { get; }
 
     public abstract Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
         ExcelWorkbookModel workbook,
-        PipelineExecutionContext context,
+        string pipelineKey,
+        ImportSourceDefinition source,
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default);
 
@@ -85,7 +86,7 @@ public abstract class ExcelFileTransformerBase(
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Error transforming row {Row} in file {Files}", excelRow.RowNumber, string.Join(", ", file.LogicalNames));
+                    _logger.LogError(ex, "Error transforming row {Row} in file {Files}", excelRow.RowNumber, string.Join(", ", file.LogicalNames));
                     RecordError(importRow, "Transform", "TRANS_ERR", ex.Message);
                     importRow.Status = ImportRowStatus.Failed;
                     failed++;

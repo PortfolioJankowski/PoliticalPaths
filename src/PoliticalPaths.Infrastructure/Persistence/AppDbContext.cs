@@ -75,13 +75,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 
         modelBuilder.Entity<SzczegolyOkregu>(b =>
         {
-            b.HasKey(x => new { x.OkregId, x.RokWyborow });
+            b.HasKey(x => new { x.OkregId, x.WyboryId });
         });
 
         modelBuilder.Entity<SzczegolyOkregu>()
             .HasOne(x => x.Okreg)
             .WithMany(w => w.Ludnosc)
             .HasForeignKey(x => x.OkregId);
+
+        modelBuilder.Entity<SzczegolyOkregu>()
+            .HasOne(x => x.Wybory)
+            .WithMany()
+            .HasForeignKey(x => x.WyboryId);
 
 
         modelBuilder.Entity<StartWyborczy>(b =>

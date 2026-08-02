@@ -1,13 +1,24 @@
  {
     "data" : {
-        "Sejm2023":[
+        "Sejm2023/19":[
                 {
                     "NazwyLogiczne": ["Kandydaci", "Okregi"],
                     "Link": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
                     "NazwyPlikow": ["okregi_sejm_utf8.xlsx", "kandydaci_sejm_utf8.xlsx"],
                     "TypPlikow": "xlsx",
                     "DataWyborow": "2023-10-15",
-                    "DataOgloszenia": "2023-10-15",
+                    "DataOgloszenia": "2023-08-08",
+                    "Tura": "1",
+                    "Organ": "Sejm",
+                    "CzyUzupelniajace:": false
+                },
+                {
+                    "NazwyLogiczne": ["Kandydaci", "Okregi"],
+                    "Link": "https://sejmsenat2019.pkw.gov.pl/sejmsenat2019/pl/dane_w_arkuszach",
+                    "NazwyPlikow": ["okregi_sejm_2019.xlsx", "kandydaci_sejm_2019.xlsx"],
+                    "TypPlikow": "xlsx",
+                    "DataWyborow": "2019-10-13",
+                    "DataOgloszenia": "2019-08-06",
                     "Tura": "1",
                     "Organ": "Sejm",
                     "CzyUzupelniajace:": false

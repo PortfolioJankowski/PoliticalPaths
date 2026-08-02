@@ -98,11 +98,11 @@ public sealed class ImportSyncService(
         await db.SaveChangesAsync(cancellationToken);
 
         // Generowanie mandatów po eksporcie danych do bazy
-        var elections = await db.Wybory.ToListAsync(cancellationToken);
-        foreach (var election in elections)
-        {
-            await mandateGenerator.GenerateMandatesForElectionAsync(election.Id, cancellationToken);
-        }
+        //var elections = await db.Wybory.ToListAsync(cancellationToken);
+        //foreach (var election in elections)
+//{
+//await mandateGenerator.GenerateMandatesForElectionAsync(election.Id, cancellationToken);
+      //  }
 
         return new PipelineSyncSummary(
             pipeline.PipelineKey,
@@ -204,7 +204,8 @@ public sealed class ImportSyncService(
 
         var transformResult = await RunTransformIfAvailableAsync(
             batch,
-            context,
+            context.PipelineKey,
+            descriptor,
             importFile,
             innerProgress,
             cancellationToken);
@@ -225,13 +226,15 @@ public sealed class ImportSyncService(
 
     private async Task<TransformFileResult> RunTransformIfAvailableAsync(
         ImportBatch batch,
-        PipelineExecutionContext context,
+        string pipelineKey,
+        ImportSourceDefinition source,
         ImportFile file,
         IProgress<TransformationProgress>? progress,
         CancellationToken cancellationToken)
     {
         return await transformationExecutor.ExecuteAsync(
-            context,
+            pipelineKey,
+            source,
             batch,
             file,
             progress,

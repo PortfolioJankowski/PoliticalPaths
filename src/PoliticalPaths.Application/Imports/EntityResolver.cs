@@ -10,6 +10,7 @@ using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
+using PoliticalPaths.Shared;
 
 namespace PoliticalPaths.Application.Imports;
 
@@ -27,7 +28,6 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     // To znacznie przyspiesza procesowanie tysięcy wierszy unikając serializacji IDistributedCache
     private readonly Dictionary<string, object> _localCache = new();
 
-    private readonly string[] _bezpartyjnyOkreslenia = { "nie należy do partii politycznej" };
 
     private async Task<T?> GetOrAddAsync<T>(string key, Func<Task<T?>> factory, CancellationToken ct) where T : class
     {
@@ -131,7 +131,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         // Szczegóły okręgu rzadko się powtarzają w ramach jednej paczki dla tego samego roku, 
         // ale sprawdzamy Local dla wydajności.
         var szczegoly = db.SzczegolyOkregow.Local.FirstOrDefault(s => s.OkregId == dto.OkregId && s.RokWyborow == dto.RokWyborow)
-                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.RokWyborow }, ct);
+                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.Wybory.Id }, ct);
 
         if (szczegoly == null)
         {
@@ -143,7 +143,8 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
                 Uprawnieni = dto.Uprawnieni,
                 LiczbaKandydatow = dto.LiczbaKandydatow,
                 LiczbaList = dto.LiczbaList,
-                LiczbaMandatow = dto.LiczbaMandatow
+                LiczbaMandatow = dto.LiczbaMandatow,
+                WyboryId = dto.Wybory.Id 
             };
             db.SzczegolyOkregow.Add(szczegoly);
         }
@@ -202,7 +203,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
 
     public async Task<Partia> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(nazwa) || _bezpartyjnyOkreslenia.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(nazwa) || TransformationConsts.BEZPARTYJNE_OKREŚLENIA.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
             return null!;
 
         var key = $"partia_{nazwa}";

@@ -1,5 +1,5 @@
 ﻿using PoliticalPaths.Application.Abstractions.Imports;
-using PoliticalPaths.Application.Pipelines;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
 namespace PoliticalPaths.Application.Imports.Transform;
@@ -15,18 +15,19 @@ public sealed class TransformationExecutor(
             StringComparer.OrdinalIgnoreCase);
 
     public async Task<TransformFileResult> ExecuteAsync(
-        PipelineExecutionContext context,
+        string pipelineKey,
+        ImportSourceDefinition source,
         ImportBatch batch,
         ImportFile file,
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         if (!_transformers.TryGetValue(
-                context.PipelineKey,
+                pipelineKey,
                 out var transformer))
         {
             return TransformFileResult.Skip(
-                $"No transformer registered for '{context.PipelineKey}'.");
+                $"No transformer registered for '{pipelineKey}'.");
         }
 
         var workbook = excelProcessor.GetWorkbook(file.StoragePath);
@@ -34,8 +35,6 @@ public sealed class TransformationExecutor(
         return await transformer.TransformFileAsync(
             file,
             workbook,
-            context,
-            progress,
-            cancellationToken);
+            pipelineKey, source, progress, cancellationToken);
     }
 }

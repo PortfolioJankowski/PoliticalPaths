@@ -61,7 +61,8 @@ public enum TypZdarzeniaMandatowego
     Wygasniecie = 4,      // Śmierć, utrata praw wyborczych
     Zrzeczenie = 5,       // Rezygnacja
     ObjecieInnejFunkcji = 6, // Np. wybór do PE, na wójta itd.
-    KoniecKadencji = 7    // Naturalny koniec
+    KoniecKadencji = 7,    // Naturalny koniec,
+    Zgon = 8
 }
 
 public enum PowodWygasnieciaMandatu

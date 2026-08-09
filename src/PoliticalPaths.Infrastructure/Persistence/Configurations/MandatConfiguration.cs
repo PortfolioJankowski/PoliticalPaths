@@ -14,17 +14,12 @@ public sealed class MandatConfiguration : IEntityTypeConfiguration<Mandat>
         builder.Property(x => x.Status).HasConversion<int>();
         builder.Property(x => x.TypObjecia).HasConversion<int>();
 
-        builder.HasOne<PoliticalPaths.Domain.Politycy.Polityk>()
-            .WithMany(p => p.Mandaty)
+        builder.HasOne(x => x.Polityk)
+            .WithMany(x => x.Mandaty)
             .HasForeignKey(x => x.PolitykId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<PoliticalPaths.Domain.Wybory.Wybory>()
-            .WithMany()
-            .HasForeignKey(x => x.WyboryId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne<PoliticalPaths.Domain.StartyWyborcze.StartWyborczy>()
+        builder.HasOne(x => x.StartWyborczy)
             .WithMany()
             .HasForeignKey(x => x.StartWyborczyId)
             .OnDelete(DeleteBehavior.Restrict);

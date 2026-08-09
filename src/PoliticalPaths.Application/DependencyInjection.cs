@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Abstractions.SejmApiClient;
 using PoliticalPaths.Application.Imports;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
@@ -17,7 +18,6 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         services.AddValidatorsFromAssembly(assembly);
-
         services.AddScoped<IEntityResolver, EntityResolver>();
         services.AddScoped<ITransformationExecutor, TransformationExecutor>();
         services.AddScoped<IImportSyncService, ImportSyncService>();
@@ -27,6 +27,13 @@ public static class DependencyInjection
         services.AddScoped<IClubMembershipService, ClubMembershipService>();
         services.AddScoped<IMandateGeneratorService, MandateGeneratorService>();
         services.AddScoped<IMandateEventService, MandateEventService>();
+        services.AddScoped<ISejmApiClient, SejmApiClient>();
+        
+        services.AddHttpClient<ISejmApiClient, SejmApiClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.sejm.gov.pl/sejm/");
+        });
+        services.AddScoped<ISejmDataExtender, SejmDataExtender>();
         return services;
     }
 }

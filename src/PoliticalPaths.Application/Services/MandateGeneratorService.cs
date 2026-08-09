@@ -39,7 +39,8 @@ public sealed class MandateGeneratorService(
 
         // Pobierz istniejące mandaty dla tych wyborów, aby uniknąć duplikatów
         var existingMandates = await db.Mandaty
-            .Where(m => m.WyboryId == wyboryId)
+            .Include(m => m.StartWyborczy)
+            .Where(m => m.StartWyborczy.WyboryId == wyboryId)
             .ToDictionaryAsync(m => m.PolitykId, ct);
 
         int createdCount = 0;
@@ -56,7 +57,6 @@ public sealed class MandateGeneratorService(
                 Id = Guid.NewGuid(),
                 PolitykId = start.PolitykId,
                 StartWyborczyId = start.Id,
-                WyboryId = wyboryId,
                 DataOd = election.DataWyborow, // Wstępna data rozpoczęcia
                 Status = StatusMandatu.Oczekujacy, // Domyślnie oczekujący na ślubowanie
                 TypObjecia = TypObjeciaMandatu.WyborBezposredni

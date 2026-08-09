@@ -14,6 +14,6 @@ public sealed class Wybory
 
     public TuraWyborow? Tura { get; set; }
     public bool CzyPrzedterminowe { get; set; }
-
+    
     public ICollection<PartiaCzlonkostwo> Czlonkostwa { get; set; } = new List<PartiaCzlonkostwo>();
 }

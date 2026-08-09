@@ -35,7 +35,7 @@ public sealed class SejmModernTransformer(
         IProgress<TransformationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var electionName = $"{source.Assembly} {source.ElectionDate.Year.ToString()}";
+        var electionName = $"{source.Assembly}";
 
         var rodzajWyborow = await entityResolver.GetOrCreateSlownikWyborowAsync(electionName, ct: cancellationToken);
         
@@ -62,7 +62,7 @@ public sealed class SejmModernTransformer(
             }
             else
             {
-                await ProcessCandidateRow(excelRow, importRow, wybory.Id, rodzajWyborow.Id, ct);
+                await ProcessCandidateRow(excelRow, importRow, wybory, rodzajWyborow.Id, ct);
             }
         }, progress, cancellationToken);
 
@@ -101,7 +101,7 @@ public sealed class SejmModernTransformer(
         importRow.DomainEntityId = okreg.Id.ToString();
     }
 
-    private async Task ProcessCandidateRow(RawRowDto excelRow, ImportRow importRow, Guid wyboryId, Guid rodzajWyborowId, CancellationToken ct)
+    private async Task ProcessCandidateRow(RawRowDto excelRow, ImportRow importRow, Wybory wybory, Guid rodzajWyborowId, CancellationToken ct)
     {
         var nrOkregu = ParseInt(excelRow, CandidatesHeaders.NrOkręgu);
         var nrListy = ParseInt(excelRow, CandidatesHeaders.NrListy);
@@ -133,7 +133,7 @@ public sealed class SejmModernTransformer(
         Guid? listaId = null;
         if (nrListy != null)
         {
-            var lista = await entityResolver.GetOrCreateListaAsync(okreg.Id, wyboryId, komitet.Id, nrListy.Value, ct);
+            var lista = await entityResolver.GetOrCreateListaAsync(okreg.Id, wybory.Id, komitet.Id, nrListy.Value, ct);
             listaId = lista.Id;
         }
 
@@ -144,7 +144,7 @@ public sealed class SejmModernTransformer(
         var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
         if (partia != null)
         {
-            await clubService.UpdateMembershipAsync(polityk.Id, partia.Id, wyboryId);
+            await clubService.UpdateMembershipAsync(polityk.Id, partia.Id, wybory.Id);
         }
 
         var popierajacaPartia = await entityResolver.GetOrCreatePartiaAsync(popierajacaPartiaNazwa!, ct);
@@ -161,7 +161,8 @@ public sealed class SejmModernTransformer(
             PartiaId = partia?.Id,
             Zawod = GetValue(excelRow, CandidatesHeaders.Zawód),
             MiejsceZamieszkania = GetValue(excelRow, CandidatesHeaders.MiejsceZamieszkania),
-            WynikiId = wyniki.Id
+            WynikiId = wyniki.Id,
+            WyboryId = wybory.Id
         };
 
         if (popierajacaPartia != null)

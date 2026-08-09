@@ -88,20 +88,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany()
             .HasForeignKey(x => x.WyboryId);
 
-
-        modelBuilder.Entity<StartWyborczy>(b =>
-        {
-            b.HasKey(x => x.Id);
-            b.Property(x => x.Zawod).HasMaxLength(200);
-            b.Property(x => x.Wyksztalcenie).HasMaxLength(200);
-            b.Property(x => x.MiejsceZamieszkania).HasMaxLength(200);
-        });
-
-        modelBuilder.Entity<StartWyborczy>()
-            .HasOne(x => x.Polityk)
-            .WithMany(p => p.StartyWyborcze)
-            .HasForeignKey(x => x.PolitykId);
-
         modelBuilder.Entity<PartiaCzlonkostwo>(b =>
         {
             b.HasKey(x => x.Id);

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PoliticalPaths.Application;
 using PoliticalPaths.Application.Abstractions.Imports;
+using PoliticalPaths.Application.Abstractions.SejmApiClient;
 using PoliticalPaths.Importers.Transform;
 using PoliticalPaths.Importers.Raw;
 using PoliticalPaths.Infrastructure;
@@ -52,8 +53,52 @@ static async Task<int> RunAsync(IHost host, string[] args)
         "help" or "--help" or "-h" => PrintHelp(),
         "sync" or "dev" => await RunSyncAsync(host, args),
         "db" => await MigrateDatabaseAsync(host, args),
+        "extend" => await ExtendDatabaseWithSejmApi(host, args),
         _ => UnknownCommand(command)
     };
+}
+
+static async Task<int> ExtendDatabaseWithSejmApi(
+    IHost host,
+    string[] args)
+{
+    await using var scope = host.Services.CreateAsyncScope();
+
+    var sejmApiClient = scope.ServiceProvider
+        .GetRequiredService<ISejmApiClient>();
+
+    var sejmDataExtender = scope.ServiceProvider
+        .GetRequiredService<ISejmDataExtender>();
+
+    var terms = Enumerable
+        .Range(9, 2)
+        .ToList();
+
+    var termData = new List<ExtendSejmMembersDto>(terms.Count);
+
+    foreach (var term in terms)
+    {
+        var data = await sejmApiClient.GetMembersListAsync(term);
+        termData.Add(data);
+    }
+
+    for (var i = 0; i < termData.Count; i++)
+    {
+        var currentTerm = termData[i];
+
+        var nextTermYear = i < termData.Count - 1
+            ? termData[i + 1].Term.From.Year
+            : DateTime.Now.Year + 1;
+
+        await sejmDataExtender.ExtendDataAsync(
+            currentTerm,
+            nextTermYear,
+            CancellationToken.None);
+    }
+
+    Console.WriteLine("COMPLETED!");
+
+    return 0;
 }
 
 static async Task<int> RunSyncAsync(IHost host, string[] args)

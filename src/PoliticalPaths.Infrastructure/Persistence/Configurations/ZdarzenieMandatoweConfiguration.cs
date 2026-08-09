@@ -15,7 +15,7 @@ public sealed class ZdarzenieMandatoweConfiguration : IEntityTypeConfiguration<Z
         builder.Property(x => x.Opis).HasMaxLength(1000);
         builder.Property(x => x.DokumentReferencyjny).HasMaxLength(256);
 
-        builder.HasOne<Mandat>()
+        builder.HasOne(z => z.Mandat)
             .WithMany(m => m.Zdarzenia)
             .HasForeignKey(x => x.MandatId)
             .OnDelete(DeleteBehavior.Cascade);

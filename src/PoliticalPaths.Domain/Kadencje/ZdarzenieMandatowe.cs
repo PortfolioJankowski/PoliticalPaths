@@ -6,6 +6,7 @@ public sealed class ZdarzenieMandatowe
 {
     public long Id { get; set; }
     public Guid MandatId { get; set; }
+    public Mandat Mandat {get; set;} = default!;
     public Guid PolitykId { get; set; }
     public TypZdarzeniaMandatowego Typ { get; set; }
     public DateOnly DataZdarzenia { get; set; }

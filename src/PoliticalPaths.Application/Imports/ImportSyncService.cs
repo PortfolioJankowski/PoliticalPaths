@@ -97,12 +97,12 @@ public sealed class ImportSyncService(
      
         await db.SaveChangesAsync(cancellationToken);
 
-        // Generowanie mandatów po eksporcie danych do bazy
-        //var elections = await db.Wybory.ToListAsync(cancellationToken);
-        //foreach (var election in elections)
-//{
-//await mandateGenerator.GenerateMandatesForElectionAsync(election.Id, cancellationToken);
-      //  }
+        // Generowanie mandatów po eksporcie danych do bazy/
+        var elections = await db.Wybory.ToListAsync(cancellationToken);
+        foreach (var election in elections)
+        {
+            await mandateGenerator.GenerateMandatesForElectionAsync(election.Id, cancellationToken); 
+        }
 
         return new PipelineSyncSummary(
             pipeline.PipelineKey,

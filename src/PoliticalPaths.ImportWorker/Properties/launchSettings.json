@@ -21,6 +21,13 @@
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"
       }
+    },
+    "ApiSejmExtender": {
+      "commandName": "Project",
+      "commandLineArgs": "extend sejm",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
     }
   }
 }

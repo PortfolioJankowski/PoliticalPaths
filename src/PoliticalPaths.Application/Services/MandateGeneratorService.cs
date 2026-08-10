@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Persistence;
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Kadencje;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Application.Services;
 
@@ -58,7 +58,7 @@ public sealed class MandateGeneratorService(
                 PolitykId = start.PolitykId,
                 StartWyborczyId = start.Id,
                 DataOd = election.DataWyborow, // Wstępna data rozpoczęcia
-                Status = StatusMandatu.Oczekujacy, // Domyślnie oczekujący na ślubowanie
+                Status = StatusMandatu.Aktywny, 
                 TypObjecia = TypObjeciaMandatu.WyborBezposredni
             };
 

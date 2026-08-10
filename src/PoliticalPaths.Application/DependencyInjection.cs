@@ -26,14 +26,6 @@ public static class DependencyInjection
         services.AddScoped<IPipelineRegistry, PipelineRegistry>();
         services.AddScoped<IClubMembershipService, ClubMembershipService>();
         services.AddScoped<IMandateGeneratorService, MandateGeneratorService>();
-        services.AddScoped<IMandateEventService, MandateEventService>();
-        services.AddScoped<ISejmApiClient, SejmApiClient>();
-        
-        services.AddHttpClient<ISejmApiClient, SejmApiClient>(client =>
-        {
-            client.BaseAddress = new Uri("https://api.sejm.gov.pl/sejm/");
-        });
-        services.AddScoped<ISejmDataExtender, SejmDataExtender>();
         return services;
     }
 }

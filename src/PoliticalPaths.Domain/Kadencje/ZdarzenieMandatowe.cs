@@ -1,4 +1,5 @@
-using PoliticalPaths.Domain.Enums;
+using PoliticalPaths.Domain.Politycy;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Domain.Kadencje;
 

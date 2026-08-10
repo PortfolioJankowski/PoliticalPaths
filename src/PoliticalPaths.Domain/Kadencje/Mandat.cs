@@ -1,6 +1,6 @@
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Domain.Kadencje;
 
@@ -12,8 +12,6 @@ public sealed class Mandat
     public Guid StartWyborczyId { get; set; }
     public StartWyborczy StartWyborczy { get; set; } = default!;
     public DateOnly DataOd { get; set; }
-    public DateOnly? DataDo { get; set; }
-    
     public StatusMandatu Status { get; set; }
     public TypObjeciaMandatu TypObjecia { get; set; }
 

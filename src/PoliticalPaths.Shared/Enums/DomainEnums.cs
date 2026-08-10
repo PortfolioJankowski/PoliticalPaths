@@ -1,4 +1,4 @@
-namespace PoliticalPaths.Domain.Enums;
+namespace PoliticalPaths.Shared.Enums;
 
 public enum RodzajIzby
 {
@@ -40,7 +40,6 @@ public enum PoziomJednostki
 
 public enum StatusMandatu
 {
-    Oczekujacy = 0, // Wybrany, ale jeszcze nie zaprzysiężony
     Aktywny = 1,    // Sprawuje mandat
     Wygasniety = 2, // Mandat wygasł przedwcześnie (śmierć, rezygnacja)
     Zakonczony = 3, // Koniec kadencji

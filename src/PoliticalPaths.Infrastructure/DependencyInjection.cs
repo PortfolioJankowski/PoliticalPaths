@@ -3,9 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
+using PoliticalPaths.Application.Abstractions.SejmApiClient;
 using PoliticalPaths.Infrastructure.Imports;
 using PoliticalPaths.Infrastructure.Persistence;
-
+using PoliticalPaths.Infrastructure.Sejm;
 
 
 namespace PoliticalPaths.Infrastructure;
@@ -34,6 +35,13 @@ public static class DependencyInjection
             options.InstanceName = "PoliticalPaths_";
         });
 
+        services.AddScoped<ISejmApiClient, SejmApiClient>();
+        
+        services.AddHttpClient<ISejmApiClient, SejmApiClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.sejm.gov.pl/sejm/");
+        });
+        services.AddScoped<ISejmDataExtender, SejmDataExtender>();
         return services;
     }
 }

@@ -1,16 +1,28 @@
 ﻿using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
+using PoliticalPaths.Application.Abstractions.SejmApiClient;
+using PoliticalPaths.Shared.Dtos.Sejm;
 
-namespace PoliticalPaths.Application.Abstractions.SejmApiClient;
+namespace PoliticalPaths.Infrastructure.Sejm;
 
-public interface ISejmApiClient
-{
-    Task<ExtendSejmMembersDto> GetMembersListAsync(int election);
-}
-
-public class SejmApiClient(HttpClient httpClient, 
+internal class SejmApiClient(HttpClient httpClient, 
     ILogger<SejmApiClient> logger) : ISejmApiClient
 {
+    
+    Dictionary<int, string> termMapping = new Dictionary<int, string>()
+    {
+        { 1, "I" },
+        { 2, "II" },
+        { 3, "III" },
+        { 4, "IV" },
+        { 5, "V" },
+        { 6, "VI" },
+        { 7, "VII" },
+        { 8, "VIII" },
+        { 9, "IX" },
+        { 10, "X" }
+    };
+    
     public async Task<ExtendSejmMembersDto> GetMembersListAsync(int election)
     {
         var termResponse = await httpClient.GetAsync($"term{election}");
@@ -26,7 +38,7 @@ public class SejmApiClient(HttpClient httpClient,
         ArgumentNullException.ThrowIfNull(membersInfo);
         ArgumentNullException.ThrowIfNull(termInfo);
         
-        return new ExtendSejmMembersDto(new SejmMembersResponse( membersInfo), termInfo);
+        return new ExtendSejmMembersDto(membersInfo, termInfo, termMapping.GetValueOrDefault(election));
     }
 }
 

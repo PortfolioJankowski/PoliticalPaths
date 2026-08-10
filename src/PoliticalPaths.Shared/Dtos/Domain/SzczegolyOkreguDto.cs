@@ -1,15 +1,12 @@
-﻿using PoliticalPaths.Domain.Wybory;
-
-namespace PoliticalPaths.Application.Dtos;
+﻿namespace PoliticalPaths.Shared.Dtos.Domain;
 
 public record SzczegolyOkreguDto(
     Guid OkregId,
-    OkregWyborczy Okreg,
     int RokWyborow,
     int Mieszkancy,
     int Uprawnieni,
     int LiczbaMandatow,
     int LiczbaList,
     int LiczbaKandydatow,
-    Wybory Wybory);
+    Guid WyboryId);
 

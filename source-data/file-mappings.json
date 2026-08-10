@@ -10,6 +10,7 @@
                     "DataOgloszenia": "2023-08-08",
                     "Tura": "1",
                     "Organ": "Sejm",
+					"Kadencja": "X",
                     "CzyUzupelniajace:": false
                 },
                 {
@@ -21,6 +22,7 @@
                     "DataOgloszenia": "2019-08-06",
                     "Tura": "1",
                     "Organ": "Sejm",
+					"Kadencja": "IX",
                     "CzyUzupelniajace:": false
                 }
             ]

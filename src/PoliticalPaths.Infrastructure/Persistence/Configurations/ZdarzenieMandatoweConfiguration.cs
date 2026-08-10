@@ -20,7 +20,7 @@ public sealed class ZdarzenieMandatoweConfiguration : IEntityTypeConfiguration<Z
             .HasForeignKey(x => x.MandatId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<PoliticalPaths.Domain.Politycy.Polityk>()
+        builder.HasOne<Domain.Politycy.Polityk>()
             .WithMany()
             .HasForeignKey(x => x.PolitykId)
             .OnDelete(DeleteBehavior.Cascade);

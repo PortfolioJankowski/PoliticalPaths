@@ -8,14 +8,22 @@ namespace PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 /// </summary>
 
 public sealed record ImportSourceDefinition(
-    [property: JsonPropertyName("NazwyLogiczne")] string[] LogicalNames,
+    [property: JsonPropertyName("NazwyLogiczne")]
+    string[] LogicalNames,
     [property: JsonPropertyName("Link")] string RawData,
-    [property: JsonPropertyName("NazwyPlikow")] string[] FileNames,
-    [property: JsonPropertyName("TypPlikow")] string FileType,
+    [property: JsonPropertyName("NazwyPlikow")]
+    string[] FileNames,
+    [property: JsonPropertyName("TypPlikow")]
+    string FileType,
     [property: JsonPropertyName("Organ")] string Assembly,
-    [property: JsonPropertyName("DataWyborow")] DateOnly ElectionDate,
-    [property: JsonPropertyName("DataOgloszenia")] DateOnly AnnouncementDate,
+    [property: JsonPropertyName("DataWyborow")]
+    DateOnly ElectionDate,
+    [property: JsonPropertyName("DataOgloszenia")]
+    DateOnly AnnouncementDate,
     [property: JsonPropertyName("Tura")] string Round,
-    [property: JsonPropertyName("CzyUzupelniajace")] bool IsSupplementary = false);
+    [property: JsonPropertyName("Kadencja")]
+    string? Term,
+    [property: JsonPropertyName("CzyUzupelniajace")]
+    bool IsSupplementary = false);
 
 

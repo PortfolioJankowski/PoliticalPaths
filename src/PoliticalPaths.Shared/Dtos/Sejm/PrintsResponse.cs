@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PoliticalPaths.Application.Abstractions.SejmApiClient;
+namespace PoliticalPaths.Shared.Dtos.Sejm;
 
 public record PrintsResponse(
     [property: JsonPropertyName("count")] int Count,

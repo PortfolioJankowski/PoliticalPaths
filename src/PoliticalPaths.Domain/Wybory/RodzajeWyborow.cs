@@ -1,4 +1,4 @@
-using PoliticalPaths.Domain.Enums;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Domain.Wybory;
 

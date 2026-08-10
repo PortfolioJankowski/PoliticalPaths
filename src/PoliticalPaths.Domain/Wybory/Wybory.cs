@@ -1,5 +1,5 @@
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Domain.Wybory;
 
@@ -11,7 +11,7 @@ public sealed class Wybory
     public DateOnly? DataOgloszenia { get; set; }
     public DateOnly DataWyborow { get; set; }
     public OrdynacjaWyborcza Ordynacja { get; set; }
-
+    public string? Kadencja { get; set; }
     public TuraWyborow? Tura { get; set; }
     public bool CzyPrzedterminowe { get; set; }
     

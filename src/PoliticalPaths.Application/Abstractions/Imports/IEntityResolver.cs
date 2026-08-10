@@ -1,10 +1,10 @@
-using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Application.Services;
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
+using PoliticalPaths.Shared.Dtos.Domain;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Application.Abstractions.Imports;
 

@@ -3,16 +3,16 @@ using PoliticalPaths.Application.Abstractions;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
 using PoliticalPaths.Application.Abstractions.Persistence;
-using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Application.Imports.ExcelDto;
 using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Application.Services;
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Imports;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 using PoliticalPaths.Shared;
+using PoliticalPaths.Shared.Dtos.Domain;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
@@ -51,7 +51,8 @@ public sealed class SejmModernTransformer(
             DataOgloszenia = source.AnnouncementDate,
             DataWyborow = source.ElectionDate,
             Ordynacja = OrdynacjaWyborcza.Proporcjonalna,
-            Tura = (TuraWyborow)int.Parse(source.Round)
+            Tura = (TuraWyborow)int.Parse(source.Round),
+            Kadencja = source.Term
         });
 
         var result = await ProcessRowsAsync(file, workbook, async (excelRow, importRow, ct) =>
@@ -85,14 +86,13 @@ public sealed class SejmModernTransformer(
         
         var szczegolyOkregu = new SzczegolyOkreguDto(
             OkregId: okreg.Id,
-            Okreg: okreg,
             RokWyborow: rok,
             Mieszkancy: mieszkancy,
             Uprawnieni: uprawnieni,
             LiczbaMandatow: liczbaMandatow,
             LiczbaList: liczbaList ?? 0,
             LiczbaKandydatow: liczbaKandydatow ?? 0,
-            Wybory: wybory
+            WyboryId: wybory.Id
         );
 
         await entityResolver.GetOrCreateSzczegolyOkregu(szczegolyOkregu);

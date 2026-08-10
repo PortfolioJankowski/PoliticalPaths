@@ -210,6 +210,8 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     DataOgloszenia = table.Column<DateOnly>(type: "date", nullable: true),
                     DataWyborow = table.Column<DateOnly>(type: "date", nullable: false),
                     Ordynacja = table.Column<int>(type: "int", nullable: false),
+                    Kadencja = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Tura = table.Column<int>(type: "int", nullable: true),
                     CzyPrzedterminowe = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
@@ -417,7 +419,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     StartWyborczyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     DataOd = table.Column<DateOnly>(type: "date", nullable: false),
-                    DataDo = table.Column<DateOnly>(type: "date", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     TypObjecia = table.Column<int>(type: "int", nullable: false)
                 },
@@ -447,6 +448,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     MandatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PolitykId1 = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Typ = table.Column<int>(type: "int", nullable: false),
                     DataZdarzenia = table.Column<DateOnly>(type: "date", nullable: false),
                     Opis = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true)
@@ -466,6 +468,12 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_ZdarzeniaMandatowe_Politycy_PolitykId",
                         column: x => x.PolitykId,
+                        principalTable: "Politycy",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ZdarzeniaMandatowe_Politycy_PolitykId1",
+                        column: x => x.PolitykId1,
                         principalTable: "Politycy",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -573,6 +581,11 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "IX_ZdarzeniaMandatowe_PolitykId",
                 table: "ZdarzeniaMandatowe",
                 column: "PolitykId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ZdarzeniaMandatowe_PolitykId1",
+                table: "ZdarzeniaMandatowe",
+                column: "PolitykId1");
         }
 
         /// <inheritdoc />

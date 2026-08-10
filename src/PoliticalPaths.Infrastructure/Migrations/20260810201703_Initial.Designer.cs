@@ -12,7 +12,7 @@ using PoliticalPaths.Infrastructure.Persistence;
 namespace PoliticalPaths.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260809194917_Initial")]
+    [Migration("20260810201703_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -320,9 +320,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<DateOnly?>("DataDo")
-                        .HasColumnType("date");
-
                     b.Property<DateOnly>("DataOd")
                         .HasColumnType("date");
 
@@ -372,6 +369,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("PolitykId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("PolitykId1")
+                        .HasColumnType("char(36)");
+
                     b.Property<int>("Typ")
                         .HasColumnType("int");
 
@@ -380,6 +380,8 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.HasIndex("MandatId");
 
                     b.HasIndex("PolitykId");
+
+                    b.HasIndex("PolitykId1");
 
                     b.ToTable("ZdarzeniaMandatowe", (string)null);
                 });
@@ -618,6 +620,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<DateOnly>("DataWyborow")
                         .HasColumnType("date");
 
+                    b.Property<string>("Kadencja")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("Ordynacja")
                         .HasColumnType("int");
 
@@ -721,7 +726,15 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PoliticalPaths.Domain.Politycy.Polityk", "Polityk")
+                        .WithMany()
+                        .HasForeignKey("PolitykId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Mandat");
+
+                    b.Navigation("Polityk");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.StartyWyborcze.StartWyborczy", b =>

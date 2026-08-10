@@ -9,10 +9,13 @@ using PoliticalPaths.Importers.Transform;
 using PoliticalPaths.Importers.Raw;
 using PoliticalPaths.Infrastructure;
 using PoliticalPaths.Infrastructure.Persistence;
+using PoliticalPaths.Shared.Dtos.Sejm;
 using PoliticalPaths.Shared.Paths;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Spectre.Console;
+using Table = Spectre.Console.Table;
+using TableColumn = Spectre.Console.TableColumn;
 
 var host = Host.CreateDefaultBuilder(args)
     .UseContentRoot(AppContext.BaseDirectory)
@@ -53,14 +56,14 @@ static async Task<int> RunAsync(IHost host, string[] args)
         "help" or "--help" or "-h" => PrintHelp(),
         "sync" or "dev" => await RunSyncAsync(host, args),
         "db" => await MigrateDatabaseAsync(host, args),
-        "extend" => await ExtendDatabaseWithSejmApi(host, args),
+        "extend" => await ExtendDatabaseWithSejmApi(host),
         _ => UnknownCommand(command)
     };
 }
 
+
 static async Task<int> ExtendDatabaseWithSejmApi(
-    IHost host,
-    string[] args)
+    IHost host)
 {
     await using var scope = host.Services.CreateAsyncScope();
 
@@ -70,29 +73,19 @@ static async Task<int> ExtendDatabaseWithSejmApi(
     var sejmDataExtender = scope.ServiceProvider
         .GetRequiredService<ISejmDataExtender>();
 
-    var terms = Enumerable
-        .Range(9, 2)
-        .ToList();
-
+    var terms = Enumerable.Range(9, 2).ToList();
     var termData = new List<ExtendSejmMembersDto>(terms.Count);
 
-    foreach (var term in terms)
+    foreach (var t in terms)
     {
-        var data = await sejmApiClient.GetMembersListAsync(term);
+        var data = await sejmApiClient.GetMembersListAsync(t);
         termData.Add(data);
     }
 
-    for (var i = 0; i < termData.Count; i++)
+    foreach (var currentTerm in termData)
     {
-        var currentTerm = termData[i];
-
-        var nextTermYear = i < termData.Count - 1
-            ? termData[i + 1].Term.From.Year
-            : DateTime.Now.Year + 1;
-
         await sejmDataExtender.ExtendDataAsync(
             currentTerm,
-            nextTermYear,
             CancellationToken.None);
     }
 
@@ -167,7 +160,7 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
     await reportService.GenerateReportAsync(result!);
 
     AnsiConsole.WriteLine();
-    var table = new Table().Border(TableBorder.Rounded);
+    var table = new Table().Border<Table>(TableBorder.Rounded);
     table.AddColumn("Pipeline");
     table.AddColumn("Batch ID");
     table.AddColumn(new TableColumn("Imported").RightAligned());

@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Abstractions.Persistence;
-using PoliticalPaths.Application.Dtos;
 using PoliticalPaths.Application.Services;
-using PoliticalPaths.Domain.Enums;
 using PoliticalPaths.Domain.Formacje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
 using PoliticalPaths.Shared;
+using PoliticalPaths.Shared.Dtos.Domain;
+using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Application.Imports;
 
@@ -94,7 +94,8 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
                 Ordynacja = wyboryDto.Ordynacja,
                 CzyPrzedterminowe = wyboryDto.CzyPrzedterminowe,
                 DataOgloszenia = wyboryDto.DataOgloszenia,
-                Tura = wyboryDto.Tura
+                Tura = wyboryDto.Tura,
+                Kadencja = wyboryDto.Kadencja
             };
             db.Wybory.Add(val);
         }
@@ -131,7 +132,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         // Szczegóły okręgu rzadko się powtarzają w ramach jednej paczki dla tego samego roku, 
         // ale sprawdzamy Local dla wydajności.
         var szczegoly = db.SzczegolyOkregow.Local.FirstOrDefault(s => s.OkregId == dto.OkregId && s.RokWyborow == dto.RokWyborow)
-                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.Wybory.Id }, ct);
+                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.WyboryId }, ct);
 
         if (szczegoly == null)
         {
@@ -144,7 +145,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
                 LiczbaKandydatow = dto.LiczbaKandydatow,
                 LiczbaList = dto.LiczbaList,
                 LiczbaMandatow = dto.LiczbaMandatow,
-                WyboryId = dto.Wybory.Id 
+                WyboryId = dto.WyboryId
             };
             db.SzczegolyOkregow.Add(szczegoly);
         }

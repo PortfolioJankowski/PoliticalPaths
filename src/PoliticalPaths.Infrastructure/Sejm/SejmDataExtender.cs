@@ -12,6 +12,11 @@ namespace PoliticalPaths.Infrastructure.Sejm;
 
 internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtender> logger) : ISejmDataExtender
 {
+    List<TypZdarzeniaMandatowego> typyDoOdrzucenia = new List<TypZdarzeniaMandatowego>()
+    {
+        TypZdarzeniaMandatowego.Wybor, TypZdarzeniaMandatowego.Zgon, TypZdarzeniaMandatowego.Zrzeczenie
+    };
+    
     public async Task ExtendDataAsync(ExtendSejmMembersDto extendDto ,CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(extendDto);
@@ -106,19 +111,25 @@ internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtende
                 logger.LogWarning($"[SejmDataExtender] Nie znaleziono mandatu, dla polityka! {politician.Id}");
                 return;
             }
-            
-            var zdarzenieMandatowe = new ZdarzenieMandatowe
-            {
-                Opis = choosenCandidate.InactiveReason,
-                PolitykId = politician.Id,
-                Typ = choosenCandidate.InactiveCause == "Zrzeczenie"
-                    ? TypZdarzeniaMandatowego.Zrzeczenie 
-                    : TypZdarzeniaMandatowego.Zgon,
-                MandatId = mandat.Id
-            };
 
-            dbContext.ZdarzeniaMandatowe.Add(zdarzenieMandatowe);
-            logger.LogDebug("[SejmDataExtender] Dodano zdarzenie mandatowe!");
+            var istniejaceZdarzenie = await dbContext.ZdarzeniaMandatowe
+                .FirstOrDefaultAsync(z => z.MandatId == mandat.Id && !typyDoOdrzucenia.Contains(z.Typ));
+
+            if (istniejaceZdarzenie != null)
+            {
+                var zdarzenieMandatowe = new ZdarzenieMandatowe
+                {
+                    Opis = choosenCandidate.InactiveReason,
+                    PolitykId = politician.Id,
+                    Typ = choosenCandidate.InactiveCause == "Zrzeczenie"
+                        ? TypZdarzeniaMandatowego.Zrzeczenie 
+                        : TypZdarzeniaMandatowego.Zgon,
+                    MandatId = mandat.Id
+                };
+
+                dbContext.ZdarzeniaMandatowe.Add(zdarzenieMandatowe);
+                logger.LogDebug("[SejmDataExtender] Dodano zdarzenie mandatowe!");
+            }
         }
     }
 }

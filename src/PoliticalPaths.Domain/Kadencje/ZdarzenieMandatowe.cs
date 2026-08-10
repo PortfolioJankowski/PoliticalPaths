@@ -9,6 +9,7 @@ public sealed class ZdarzenieMandatowe
     public Guid MandatId { get; set; }
     public Mandat Mandat {get; set;} = default!;
     public Guid PolitykId { get; set; }
+    public Polityk Polityk { get; set; }
     public TypZdarzeniaMandatowego Typ { get; set; }
     public DateOnly DataZdarzenia { get; set; }
     public string? Opis { get; set; }

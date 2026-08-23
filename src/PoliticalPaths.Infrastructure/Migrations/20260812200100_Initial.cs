@@ -448,7 +448,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     MandatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     PolitykId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    PolitykId1 = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Typ = table.Column<int>(type: "int", nullable: false),
                     DataZdarzenia = table.Column<DateOnly>(type: "date", nullable: false),
                     Opis = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true)
@@ -468,12 +467,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_ZdarzeniaMandatowe_Politycy_PolitykId",
                         column: x => x.PolitykId,
-                        principalTable: "Politycy",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ZdarzeniaMandatowe_Politycy_PolitykId1",
-                        column: x => x.PolitykId1,
                         principalTable: "Politycy",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -581,11 +574,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                 name: "IX_ZdarzeniaMandatowe_PolitykId",
                 table: "ZdarzeniaMandatowe",
                 column: "PolitykId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ZdarzeniaMandatowe_PolitykId1",
-                table: "ZdarzeniaMandatowe",
-                column: "PolitykId1");
         }
 
         /// <inheritdoc />

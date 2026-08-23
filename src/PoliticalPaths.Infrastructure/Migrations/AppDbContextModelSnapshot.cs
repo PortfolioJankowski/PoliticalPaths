@@ -366,9 +366,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<Guid>("PolitykId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("PolitykId1")
-                        .HasColumnType("char(36)");
-
                     b.Property<int>("Typ")
                         .HasColumnType("int");
 
@@ -377,8 +374,6 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.HasIndex("MandatId");
 
                     b.HasIndex("PolitykId");
-
-                    b.HasIndex("PolitykId1");
 
                     b.ToTable("ZdarzeniaMandatowe", (string)null);
                 });
@@ -717,15 +712,9 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PoliticalPaths.Domain.Politycy.Polityk", null)
-                        .WithMany()
-                        .HasForeignKey("PolitykId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PoliticalPaths.Domain.Politycy.Polityk", "Polityk")
-                        .WithMany()
-                        .HasForeignKey("PolitykId1")
+                        .WithMany("ZdarzeniaMandatowe")
+                        .HasForeignKey("PolitykId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -830,6 +819,8 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Navigation("Mandaty");
 
                     b.Navigation("StartyWyborcze");
+
+                    b.Navigation("ZdarzeniaMandatowe");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Wybory.OkregWyborczy", b =>

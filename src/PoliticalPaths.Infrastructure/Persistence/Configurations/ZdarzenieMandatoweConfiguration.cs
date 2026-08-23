@@ -21,7 +21,7 @@ public sealed class ZdarzenieMandatoweConfiguration : IEntityTypeConfiguration<Z
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(zd => zd.Polityk)
-            .WithMany()
+            .WithMany(p => p.ZdarzeniaMandatowe) 
             .HasForeignKey(x => x.PolitykId)
             .OnDelete(DeleteBehavior.Cascade);
     }

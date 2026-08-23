@@ -1,4 +1,5 @@
 using PoliticalPaths.Domain.Formacje;
+using PoliticalPaths.Domain.Kadencje;
 using PoliticalPaths.Domain.StartyWyborcze;
 
 namespace PoliticalPaths.Domain.Politycy;
@@ -16,6 +17,7 @@ public sealed class Polityk
     public string? InformacjeDodatkowe { get; set; }
     public ICollection<StartWyborczy> StartyWyborcze { get; set; } = new List<StartWyborczy>();
     public ICollection<PartiaCzlonkostwo> Czlonkostwa { get; set; } = new List<PartiaCzlonkostwo>();
-    public ICollection<PoliticalPaths.Domain.Kadencje.Mandat> Mandaty { get; set; } = new List<PoliticalPaths.Domain.Kadencje.Mandat>();
+    public ICollection<Mandat> Mandaty { get; set; } = new List<Mandat>();
+    public ICollection<ZdarzenieMandatowe> ZdarzeniaMandatowe { get; set; } = new List<ZdarzenieMandatowe>();
 
 }

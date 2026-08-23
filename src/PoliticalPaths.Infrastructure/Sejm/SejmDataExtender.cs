@@ -10,13 +10,10 @@ using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Infrastructure.Sejm;
 
-internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtender> logger) : ISejmDataExtender
+internal class SejmDataExtender(IAppDbContext dbContext, 
+    ILogger<SejmDataExtender> logger,
+    IMandatSuccessionResolver successionResolver) : ISejmDataExtender
 {
-    List<TypZdarzeniaMandatowego> typyDoOdrzucenia = new List<TypZdarzeniaMandatowego>()
-    {
-        TypZdarzeniaMandatowego.Wybor, TypZdarzeniaMandatowego.Zgon, TypZdarzeniaMandatowego.Zrzeczenie
-    };
-    
     public async Task ExtendDataAsync(ExtendSejmMembersDto extendDto ,CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(extendDto);
@@ -32,9 +29,11 @@ internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtende
 
         var politicians = await dbContext.Politycy
             .Include(p => p.StartyWyborcze)
-            .ThenInclude(s => s.Wybory)
+                .ThenInclude(s => s.Wybory)
             .Include(p => p.StartyWyborcze)
-            .ThenInclude(s => s.Wyniki)
+                .ThenInclude(s => s.Wyniki)
+            .Include(p => p.StartyWyborcze)
+                .ThenInclude(s => s.ListaWyborcza)
             .Where(p => p.StartyWyborcze.Any(s =>
                 s.Wybory.Kadencja == extendDto.TermNo &&
                 s.Wybory.Rodzaj.Nazwa.StartsWith("Sejm") &&
@@ -53,17 +52,29 @@ internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtende
             
             logger.LogDebug($"[SejmDataExtender]: Found {choosenMembers?.Count ?? 0} choosen members");
 
-            await AdjustData(politician, choosenMembers, dbContext, extendDto.TermNo);
+            bool shouldFindNewMember = await AdjustData(
+                politician,
+                choosenMembers,
+                extendDto.TermNo,
+                cancellationToken);
+            if (shouldFindNewMember)
+            {
+                await successionResolver.ResolveNextMandat(politician, extendDto, cancellationToken);
+            }
         }
         
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task AdjustData(Polityk politician, List<SejmMemberDto> choosenMembers, IAppDbContext dbContext, string kadencja)
+    private async Task<bool> AdjustData(
+        Polityk politician,
+        List<SejmMemberDto> choosenMembers,
+        string kadencja,
+        CancellationToken cancellationToken)
     {
         if (choosenMembers.Count == 0)
         {
-            return;
+            return false;
         }
 
         if (choosenMembers.Count > 1)
@@ -79,7 +90,7 @@ internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtende
                     $"{c.FirstName} {c.LastName} {c.BirthDate} {c.BirthLocation} {c.Club} {c.Profession} {c.EducationLevel}");
             }
             politician.InformacjeDodatkowe = sb.ToString();
-            return;
+            return false;
         }
 
         var choosenCandidate = choosenMembers[0];
@@ -97,39 +108,53 @@ internal class SejmDataExtender(IAppDbContext dbContext, ILogger<SejmDataExtende
         bool czyZdarzenieMandatowe = !string.IsNullOrWhiteSpace(choosenCandidate.InactiveCause);
         if (czyZdarzenieMandatowe)
         {
-            var startWyborczyIds = politician.StartyWyborcze
+            var startWyborczyId = politician.StartyWyborcze
+                .Where(s => s.Wybory.Kadencja == kadencja)
                 .Select(s => s.Id)
-                .ToList();
+                .First();
 
             var mandat = await dbContext.Mandaty
                 .FirstOrDefaultAsync(
-                    m => m.PolitykId == politician.Id &&
-                         startWyborczyIds.Contains(m.StartWyborczyId));
+                    m => m.PolitykId == politician.Id && m.StartWyborczyId == startWyborczyId,
+                    cancellationToken);
 
             if (mandat == null)
             {
                 logger.LogWarning($"[SejmDataExtender] Nie znaleziono mandatu, dla polityka! {politician.Id}");
-                return;
+                return false;
             }
 
-            var istniejaceZdarzenie = await dbContext.ZdarzeniaMandatowe
-                .FirstOrDefaultAsync(z => z.MandatId == mandat.Id && !typyDoOdrzucenia.Contains(z.Typ));
+            var typZdarzenia = choosenCandidate.InactiveCause switch
+            {
+                "Zrzeczenie" => TypZdarzeniaMandatowego.Zrzeczenie,
+                "Zgon" => TypZdarzeniaMandatowego.Zgon,
+                _ => TypZdarzeniaMandatowego.Wygasniecie
+            };
 
-            if (istniejaceZdarzenie != null)
+            var istniejeTakieZdarzenie = await dbContext.ZdarzeniaMandatowe
+                .AnyAsync(
+                    z => z.MandatId == mandat.Id && z.Typ == typZdarzenia,
+                    cancellationToken);
+
+            mandat.Status = StatusMandatu.Wygasniety;
+
+            if (!istniejeTakieZdarzenie)
             {
                 var zdarzenieMandatowe = new ZdarzenieMandatowe
                 {
                     Opis = choosenCandidate.InactiveReason,
                     PolitykId = politician.Id,
-                    Typ = choosenCandidate.InactiveCause == "Zrzeczenie"
-                        ? TypZdarzeniaMandatowego.Zrzeczenie 
-                        : TypZdarzeniaMandatowego.Zgon,
-                    MandatId = mandat.Id
+                    Typ = typZdarzenia,
+                    MandatId = mandat.Id,
+                    DataZdarzenia = mandat.DataOd.AddDays(1)
                 };
-
+                
                 dbContext.ZdarzeniaMandatowe.Add(zdarzenieMandatowe);
                 logger.LogDebug("[SejmDataExtender] Dodano zdarzenie mandatowe!");
+                return true;
             }
         }
+
+        return false;
     }
 }

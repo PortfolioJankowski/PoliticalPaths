@@ -1,6 +1,6 @@
  {
     "data" : {
-        "Sejm2023/19":[
+        "Sejm":[
                 {
                     "NazwyLogiczne": ["Kandydaci", "Okregi"],
                     "Link": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
@@ -23,6 +23,30 @@
                     "Tura": "1",
                     "Organ": "Sejm",
 					"Kadencja": "IX",
+                    "CzyUzupelniajace:": false
+                },
+                {
+                    "NazwyLogiczne": ["Kandydaci", "Okregi"],
+                    "Link": "https://danewyborcze.kbw.gov.pl/index4ca9.html?title=Wybory_do_Sejmu_w_2015_r",
+                    "NazwyPlikow": ["okregi_sejm_2015.xlsx", "kandydaci_sejm_2015.xlsx"],
+                    "TypPlikow": "xlsx",
+                    "DataWyborow": "2015-10-25",
+                    "DataOgloszenia": "2015-07-20",
+                    "Tura": "1",
+                    "Organ": "Sejm",
+					"Kadencja": "VIII",
+                    "CzyUzupelniajace:": false
+                },
+                {
+                    "NazwyLogiczne": ["Kandydaci", "Okregi"],
+                    "Link": "https://danewyborcze.kbw.gov.pl/index9d55.html?title=Parlament_2011",
+                    "NazwyPlikow": ["okregi_sejm_2011.xlsx", "kandydaci_sejm_2011.xlsx"],
+                    "TypPlikow": "xlsx",
+                    "DataWyborow": "2011-10-09",
+                    "DataOgloszenia": "2011-08-05",
+                    "Tura": "1",
+                    "Organ": "Sejm",
+					"Kadencja": "VII",
                     "CzyUzupelniajace:": false
                 }
             ]

@@ -3,3 +3,13 @@
 - dodano kolumnę łączącą imiona i nazwisko na wzór pliku z 2023
 
 Dla okręgów 2019 również zmieniono układ kolumn.
+
+2. Dla 2015 dane o kandydatach są wyłącznie ze strony:
+https://danewyborcze.kbw.gov.pl/indexb73b.html?title=Parlament_2015
+Dla okręgów dane stanowią połączenie z pkw  https://parlament2015.pkw.gov.pl/344_Sejm-2.html oraz ze strony https://danewyborcze.kbw.gov.pl/indexb73b.html?title=Parlament_2015.
+Z PKW są liczba list/mandatów/kandydatów. Z danych wyborczych mieszkańcy i uprawnieni.
+Dane wyborcze zawierają informację per obwód wyborczy. Robię tabelę przestawną i sumuje po nr okręgu sejmowego mieszkańców oraz wyborców.
+Trochę mi się to nie zgadza … PKW podaje na stronie inne dane.
+W Excelu 37 243 576 mieszkańców a PKW 37 424 459
+W Excelu 30 732 278 mieszkańców a pkw 30 534 948
+W 2015 nie mamy danych dotyczących Poparcia dla kandydata. Jest do jakiej partii przynależy ale nie ma poparcia

@@ -16,7 +16,7 @@ using PoliticalPaths.Shared.Enums;
 
 namespace PoliticalPaths.Importers.Transform.SejmDemo2023;
 
-[ImportTransformer("Sejm2023/19")]
+[ImportTransformer("Sejm")]
 public sealed class SejmModernTransformer(
     IAppDbContext db,
     IEntityResolver entityResolver,
@@ -25,7 +25,7 @@ public sealed class SejmModernTransformer(
     IClubMembershipService clubService)
     : ExcelFileTransformerBase(db, errorRecorder, logger)
 {
-    public override string PipelineKey => "Sejm2023/19";
+    public override string PipelineKey => "Sejm";
 
     public override async Task<TransformFileResult> TransformFileAsync(
         ImportFile file,
@@ -109,7 +109,16 @@ public sealed class SejmModernTransformer(
         var nazwiskoImiona = GetValue(excelRow, CandidatesHeaders.NazwiskoIImiona);
         var komitetNazwa = GetValue(excelRow, CandidatesHeaders.NazwaKomitetu);
         var partiaNazwa = GetValue(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
-        partiaNazwa = partiaNazwa!.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+
+        if (partiaNazwa!.Contains("członek partii politycznej: "))
+        {
+            partiaNazwa = partiaNazwa!.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+        }
+        else if (partiaNazwa!.Contains("członek partii "))
+        {
+            partiaNazwa = partiaNazwa!.Replace("członek partii ", "", StringComparison.OrdinalIgnoreCase).Trim();
+        }
+        
         var popierajacaPartiaNazwa = GetValue(excelRow, CandidatesHeaders.Poparcie);
         
         if (!string.IsNullOrWhiteSpace(popierajacaPartiaNazwa))

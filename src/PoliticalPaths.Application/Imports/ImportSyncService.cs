@@ -70,6 +70,19 @@ public sealed class ImportSyncService(
 
         var fileStats = new List<FileSyncResult>();
 
+        //check if files exist
+        var filePaths = pipeline.Sources
+            .SelectMany(s => s.FileNames);
+
+        foreach (var file in filePaths)
+        {
+            if (!File.Exists(Path.Combine(@"C:\Users\matja\source\repos\PoliticalPaths\source-data\inbox", file)))
+            {
+                throw new InvalidOperationException("File does not exist.");
+            }
+        }
+        
+        logger.LogInformation("FILES OK");
         foreach (var source in pipeline.Sources)
         {
             foreach (var fileName in source.FileNames)

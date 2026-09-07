@@ -55,10 +55,16 @@ public sealed class MandateGeneratorService(
         }
 
         // Pobierz istniejące mandaty dla tych wyborów, aby uniknąć duplikatów
-        var existingMandates = await db.Mandaty
+        var existingMandates = (await db.Mandaty
             .Include(m => m.StartWyborczy)
             .Where(m => m.StartWyborczy.WyboryId == wyboryId)
-            .ToDictionaryAsync(m => m.PolitykId, ct);
+            .ToListAsync(ct))
+            // A previous run may have created duplicate mandates for one
+            // politician. Keep one existing record for the idempotency check
+            // instead of failing the whole import on ToDictionary.
+            .GroupBy(m => m.PolitykId)
+            .Select(g => g.OrderBy(m => m.DataOd).First())
+            .ToDictionary(m => m.PolitykId);
 
         int createdCount = 0;
 

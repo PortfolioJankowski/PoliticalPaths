@@ -23,6 +23,25 @@ public class MandatSuccessionResolver(IAppDbContext dbContext) : IMandatSuccessi
         {
             return;
         }
+
+        // Mandaty sukcesyjne are often resolved several times in one import
+        // before the surrounding unit of work calls SaveChanges. SQL queries
+        // do not see Added entities, so without this set every invocation
+        // could select the same highest-ranked candidate again.
+        var assignedPolitykIds = (await dbContext.Mandaty
+                .Where(m => m.StartWyborczy.Wybory.Kadencja == kadencja)
+                .Select(m => m.PolitykId)
+                .ToListAsync(cancellationToken))
+            .ToHashSet();
+
+        var localStartsForTerm = dbContext.StartyWyborcze.Local
+            .Where(s => s.Wybory?.Kadencja == kadencja)
+            .Select(s => s.Id)
+            .ToHashSet();
+        assignedPolitykIds.UnionWith(
+            dbContext.Mandaty.Local
+                .Where(m => localStartsForTerm.Contains(m.StartWyborczyId))
+                .Select(m => m.PolitykId));
         
         var startujacyZListy = await dbContext.Politycy
             .Include(p => p.StartyWyborcze)
@@ -35,9 +54,7 @@ public class MandatSuccessionResolver(IAppDbContext dbContext) : IMandatSuccessi
                     s.ListaWyborcza.Id == lista.Id &&
                     s.Wybory.Kadencja == kadencja &&
                     !s.Wyniki.CzyMandat)
-                && !dbContext.Mandaty.Any(m =>
-                    m.PolitykId == p.Id &&
-                    m.StartWyborczy.Wybory.Kadencja == kadencja))
+                && !assignedPolitykIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
 
         var kandydaciWedlugWyniku = startujacyZListy
@@ -105,6 +122,7 @@ public class MandatSuccessionResolver(IAppDbContext dbContext) : IMandatSuccessi
                 
                 await dbContext.Mandaty.AddAsync(nowyMandat);
                 await dbContext.ZdarzeniaMandatowe.AddAsync(zdarzenieSukcesji);
+                assignedPolitykIds.Add(kandydat.Id);
                 return;
             }
         }

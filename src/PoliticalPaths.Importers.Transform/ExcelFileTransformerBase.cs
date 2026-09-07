@@ -45,22 +45,32 @@ public abstract class ExcelFileTransformerBase(
         var failed = 0;
         var warnings = 0;
 
-        var rows = await Db.ImportRows
-            .Where(r => r.ImportFileId == file.Id)
-            .ToListAsync(cancellationToken);
-        var rowsMap = rows.ToDictionary(r => (r.SheetName, r.RowNumber));
+        // EF's automatic change detection scans every tracked entity on each
+        // Add/assignment. During a large import that turns row processing into
+        // O(n²). SaveChanges performs one complete detection after the loop.
+        var dbContext = Db as DbContext;
+        var autoDetectChanges = dbContext?.ChangeTracker.AutoDetectChangesEnabled ?? true;
+        if (dbContext is not null)
+            dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
 
-        var totalRowsCount = workbook.Sheets.Sum(s => s.Rows.Count);
-        var currentProcessed = 0;
-
-        foreach (var sheet in workbook.Sheets)
+        try
         {
-            foreach (var excelRow in sheet.Rows)
+            var rows = await Db.ImportRows
+                .Where(r => r.ImportFileId == file.Id)
+                .ToListAsync(cancellationToken);
+            var rowsMap = rows.ToDictionary(r => (r.SheetName, r.RowNumber));
+
+            var totalRowsCount = workbook.Sheets.Sum(s => s.Rows.Count);
+            var currentProcessed = 0;
+
+            foreach (var sheet in workbook.Sheets)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
-                if (!rowsMap.TryGetValue((sheet.Name, excelRow.RowNumber), out var importRow))
+                foreach (var excelRow in sheet.Rows)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                
+                    if (!rowsMap.TryGetValue((sheet.Name, excelRow.RowNumber), out var importRow))
+                    {
                     // Lazy Raw Import: if row doesn't exist in DB, create it now (Stage 1)
                     importRow = new ImportRow
                     {
@@ -74,37 +84,43 @@ public abstract class ExcelFileTransformerBase(
                         ImportedAt = DateTime.UtcNow
                     };
                     Db.ImportRows.Add(importRow);
-                    file.TotalRows++;
-                }
+                        file.TotalRows++;
+                    }
 
-                try
-                {
-                    await rowProcessor(excelRow, importRow, cancellationToken);
-                    importRow.Status = ImportRowStatus.Transformed;
-                    importRow.TransformedAt = DateTime.UtcNow;
-                    transformed++;
-                }
-                catch (Exception ex)
-                {
+                    try
+                    {
+                        await rowProcessor(excelRow, importRow, cancellationToken);
+                        importRow.Status = ImportRowStatus.Transformed;
+                        importRow.TransformedAt = DateTime.UtcNow;
+                        transformed++;
+                    }
+                    catch (Exception ex)
+                    {
                     _logger.LogError(ex, "Error transforming row {Row} in file {Files}", excelRow.RowNumber, string.Join(", ", file.LogicalNames));
                     RecordError(importRow, "Transform", "TRANS_ERR", ex.Message);
                     importRow.Status = ImportRowStatus.Failed;
-                    failed++;
-                }
-                finally
-                {
+                        failed++;
+                    }
+                    finally
+                    {
                     currentProcessed++;
                     progress?.Report(new TransformationProgress(currentProcessed, totalRowsCount));
+                    }
                 }
             }
+
+            // Update file level summary
+            file.TransformedRows = transformed;
+            file.FailedRows = failed;
+            file.Status = failed == 0 ? ImportFileStatus.Completed : ImportFileStatus.PartiallyCompleted;
+
+            return new TransformFileResult(transformed, failed, warnings);
         }
-
-        // Update file level summary
-        file.TransformedRows = transformed;
-        file.FailedRows = failed;
-        file.Status = failed == 0 ? ImportFileStatus.Completed : ImportFileStatus.PartiallyCompleted;
-
-        return new TransformFileResult(transformed, failed, warnings);
+        finally
+        {
+            if (dbContext is not null)
+                dbContext.ChangeTracker.AutoDetectChangesEnabled = autoDetectChanges;
+        }
     }
 
     protected void RecordError(
@@ -157,7 +173,8 @@ public abstract class ExcelFileTransformerBase(
 
     protected bool ParseBool<TEnum>(RawRowDto row, TEnum column, string[] trueValues) where TEnum : struct, Enum
     {
-        var val = GetValue(row, column)?.ToLower();
-        return val != null && trueValues.Contains(val);
+        var val = GetValue(row, column)?.Trim();
+        return val is not null && trueValues.Any(trueValue =>
+            string.Equals(trueValue.Trim(), val, StringComparison.OrdinalIgnoreCase));
     }
 }

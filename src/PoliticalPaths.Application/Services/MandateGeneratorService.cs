@@ -25,11 +25,28 @@ public sealed class MandateGeneratorService(
         }
 
         // Pobierz zwycięzców (tych, którzy mają CzyMandat = true w WynikiWyborow)
-        var winningStarts = await (from s in db.StartyWyborcze
-                                   join l in db.ListaWyborcza on s.ListaId equals l.Id
-                                   join w in db.WynikiWyborow on s.WynikiId equals w.Id
-                                   where l.WyboryId == wyboryId && w.CzyMandat
-                                   select s).ToListAsync(ct);
+        // Imported candidate files are the source of truth. Use the election
+        // relation on StartWyborczy and the imported CzyMandat flag directly.
+        var electionStarts = await db.StartyWyborcze
+            .AsNoTracking()
+            .Where(s => s.WyboryId == wyboryId && s.ListaId != null)
+            .Select(s => new { s.Id, s.Wyniki.CzyMandat })
+            .ToListAsync(ct);
+
+        var winningStartIds = electionStarts
+            .Where(s => s.CzyMandat)
+            .Select(s => s.Id)
+            .ToHashSet();
+
+        logger.LogInformation(
+            "Election {WyboryId}: imported starts={Starts}, imported winners={Winners}",
+            wyboryId,
+            electionStarts.Count,
+            winningStartIds.Count);
+
+        var winningStarts = await db.StartyWyborcze
+            .Where(s => winningStartIds.Contains(s.Id))
+            .ToListAsync(ct);
 
         if (!winningStarts.Any())
         {

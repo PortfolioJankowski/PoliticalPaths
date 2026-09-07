@@ -1,4 +1,5 @@
 using RazorLight;
+using Microsoft.Extensions.Configuration;
 using PoliticalPaths.Application.Abstractions.Imports;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Shared.Paths;
@@ -10,7 +11,9 @@ public sealed class ImportReportService : IImportReportService
 {
     private readonly IRazorLightEngine _engine;
 
-    public ImportReportService()
+    private readonly string _reportsDirectory;
+
+    public ImportReportService(IConfiguration configuration)
     {
         _engine = new RazorLightEngineBuilder()
             .UseEmbeddedResourcesProject(typeof(ImportReportService))
@@ -18,6 +21,9 @@ public sealed class ImportReportService : IImportReportService
             .UseMemoryCachingProvider()
             .EnableDebugMode(true)
             .Build();
+
+        _reportsDirectory = configuration["Import:ReportsPath"]
+            ?? Path.Combine(RepoPaths.SourceDataRoot(), "reports");
     }
 
     public async Task GenerateReportAsync(ImportSyncResult result, CancellationToken ct = default)
@@ -25,11 +31,10 @@ public sealed class ImportReportService : IImportReportService
         try
         {
             var html = await _engine.CompileRenderAsync("Templates.ImportReport", result);
-            var reportsDir = Path.Combine(RepoPaths.SourceDataRoot(), "reports");
-            if (!Directory.Exists(reportsDir)) Directory.CreateDirectory(reportsDir);
+            if (!Directory.Exists(_reportsDirectory)) Directory.CreateDirectory(_reportsDirectory);
 
             var fileName = $"report_{DateTime.Now:yyyyMMdd_HHmmss}.html";
-            var filePath = Path.Combine(reportsDir, fileName);
+            var filePath = Path.Combine(_reportsDirectory, fileName);
 
             await File.WriteAllTextAsync(filePath, html, Encoding.UTF8, ct);
         }

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Political Paths</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /><link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /><link rel="stylesheet" href="~/PoliticalPaths.Dashboard.styles.css" asp-append-version="true" />
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar"><a class="brand" asp-page="/Index"><span class="brand-mark">P</span><span>Political <b>Paths</b></span></a><div class="sidebar-label">PRZEGLĄD</div><nav class="side-nav"><a asp-page="/Index" class="side-link"><span class="nav-icon">⌂</span>Dashboard</a><a asp-page="/Imports/Index" class="side-link"><span class="nav-icon">↥</span>Importy danych</a><a asp-page="/Elections/Index" class="side-link"><span class="nav-icon">▣</span>Wybory</a><a asp-page="/Politicians/Index" class="side-link"><span class="nav-icon">◎</span>Politycy</a></nav><div class="sidebar-bottom"><div class="status-dot"></div><div><small>Źródło danych</small><strong>Political Paths DB</strong></div></div></aside>
+    <div class="main-shell"><header class="topbar"><div class="mobile-brand">Political <b>Paths</b></div><div class="topbar-meta"><span class="live-dot"></span>Panel analityczny <span class="topbar-divider">•</span> 2026</div></header><main class="content-wrap" role="main">@RenderBody()</main><footer class="app-footer">Political Paths <span>·</span> analityka danych wyborczych</footer></div>
+</div>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script><script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body></html>

@@ -57,8 +57,23 @@ static async Task<int> RunAsync(IHost host, string[] args)
         "sync" or "dev" => await RunSyncAsync(host, args),
         "db" => await MigrateDatabaseAsync(host, args),
         "extend" => await ExtendDatabaseWithSejmApi(host),
+        "full-sync" => await RunFullSyncAsync(host, args),
         _ => UnknownCommand(command)
     };
+}
+
+static async Task<int> RunFullSyncAsync(IHost host, string[] args)
+{
+    var migrationResult = await MigrateDatabaseAsync(host, ["db", "migrate"]);
+    if (migrationResult != 0)
+        return migrationResult;
+
+    var syncArgs = new[] { "sync" }.Concat(args.Skip(1)).ToArray();
+    var syncResult = await RunSyncAsync(host, syncArgs);
+    if (syncResult != 0)
+        return syncResult;
+
+    return await ExtendDatabaseWithSejmApi(host);
 }
 
 
@@ -225,6 +240,7 @@ static int PrintHelp()
         Komendy:
           sync | dev [--no-seed] [--force]
           db migrate
+          full-sync [--no-seed] [--force]  (migracja + import + API Sejmu)
           help
 
         Inbox: source-data/inbox/{pipeline-key}/

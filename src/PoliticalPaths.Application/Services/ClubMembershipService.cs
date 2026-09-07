@@ -7,28 +7,33 @@ namespace PoliticalPaths.Application.Services;
 
 public class ClubMembershipService(IAppDbContext db) : IClubMembershipService
 {
+    private readonly Dictionary<Guid, PartiaCzlonkostwo?> _activeMemberships = new();
+
     public async Task UpdateMembershipAsync(
     Guid politykId,
     Guid partiaId,
     Guid wyborId,
     CancellationToken ct = default)
     {
-        var memberships = await db.PartieCzlonkostwa
-            .Where(x => x.PolitykId == politykId)
-            .ToListAsync(ct);
-
-        var active = memberships.FirstOrDefault(x => x.IsActive);
+        if (!_activeMemberships.TryGetValue(politykId, out var active))
+        {
+            active = await db.PartieCzlonkostwa
+                .FirstOrDefaultAsync(x => x.PolitykId == politykId && x.IsActive, ct);
+            _activeMemberships[politykId] = active;
+        }
 
         if (active == null)
         {
-            db.PartieCzlonkostwa.Add(new PartiaCzlonkostwo
+            var membership = new PartiaCzlonkostwo
             {
                 Id = Guid.NewGuid(),
                 PolitykId = politykId,
                 PartiaId = partiaId,
                 WyboryId = wyborId,
                 IsActive = true
-            });
+            };
+            db.PartieCzlonkostwa.Add(membership);
+            _activeMemberships[politykId] = membership;
 
             return;
         }
@@ -40,13 +45,15 @@ public class ClubMembershipService(IAppDbContext db) : IClubMembershipService
 
         active.IsActive = false;
 
-        db.PartieCzlonkostwa.Add(new PartiaCzlonkostwo
+        var replacement = new PartiaCzlonkostwo
         {
             Id = Guid.NewGuid(),
             PolitykId = politykId,
             PartiaId = partiaId,
             WyboryId = wyborId,
             IsActive = true
-        });
+        };
+        db.PartieCzlonkostwa.Add(replacement);
+        _activeMemberships[politykId] = replacement;
     }
 }

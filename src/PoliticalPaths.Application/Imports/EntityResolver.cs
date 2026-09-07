@@ -63,8 +63,9 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"rodzaj_{nazwa}";
         if (_localCache.TryGetValue(key, out var cached)) return (RodzajeWyborow)cached;
 
-        var val = db.RodzajeWyborow.Local.FirstOrDefault(s => s.Nazwa == nazwa)
-                 ?? await db.RodzajeWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
+        // _localCache is keyed by the natural key and is O(1). Scanning
+        // DbSet.Local here makes every new row increasingly expensive (O(n²)).
+        var val = await db.RodzajeWyborow.FirstOrDefaultAsync(s => s.Nazwa == nazwa, ct);
 
         if (val == null)
         {
@@ -81,8 +82,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"wybory_{wyboryDto.RodzajWyborowId}_{wyboryDto.DataWyborow}";
         if (_localCache.TryGetValue(key, out var cached)) return (Wybory)cached;
 
-        var val = db.Wybory.Local.FirstOrDefault(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow)
-                 ?? await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow, ct);
+        var val = await db.Wybory.FirstOrDefaultAsync(w => w.RodzajWyborowId == wyboryDto.RodzajWyborowId && w.DataWyborow == wyboryDto.DataWyborow, ct);
 
         if (val == null)
         {
@@ -109,8 +109,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"okreg_{rodzajWyborowId}_{numer}";
         if (_localCache.TryGetValue(key, out var cached)) return (OkregWyborczy)cached;
 
-        var val = db.OkregWyborczy.Local.FirstOrDefault(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId)
-                 ?? await db.OkregWyborczy.FirstOrDefaultAsync(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId, ct);
+        var val = await db.OkregWyborczy.FirstOrDefaultAsync(o => o.NumerOkregu == numer && o.RodzajWyborowId == rodzajWyborowId, ct);
 
         if (val == null)
         {
@@ -131,8 +130,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
     {
         // Szczegóły okręgu rzadko się powtarzają w ramach jednej paczki dla tego samego roku, 
         // ale sprawdzamy Local dla wydajności.
-        var szczegoly = db.SzczegolyOkregow.Local.FirstOrDefault(s => s.OkregId == dto.OkregId && s.RokWyborow == dto.RokWyborow)
-                       ?? await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.WyboryId }, ct);
+        var szczegoly = await db.SzczegolyOkregow.FindAsync(new object[] { dto.OkregId, dto.WyboryId }, ct);
 
         if (szczegoly == null)
         {
@@ -164,8 +162,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"komitet_{nazwa}";
         if (_localCache.TryGetValue(key, out var cached)) return (KomitetWyborczy)cached;
 
-        var val = db.KomitetyWyborcze.Local.FirstOrDefault(k => k.Nazwa == nazwa)
-                 ?? await db.KomitetyWyborcze.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
+        var val = await db.KomitetyWyborcze.FirstOrDefaultAsync(k => k.Nazwa == nazwa, ct);
 
         if (val == null)
         {
@@ -182,8 +179,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"lista_{wyboryId}_{okregId}_{numer}";
         if (_localCache.TryGetValue(key, out var cached)) return (ListaWyborcza)cached;
 
-        var val = db.ListaWyborcza.Local.FirstOrDefault(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer)
-                 ?? await db.ListaWyborcza.FirstOrDefaultAsync(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer, ct);
+        var val = await db.ListaWyborcza.FirstOrDefaultAsync(l => l.OkregId == okregId && l.WyboryId == wyboryId && l.NumerListy == numer, ct);
 
         if (val == null)
         {
@@ -210,8 +206,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"partia_{nazwa}";
         if (_localCache.TryGetValue(key, out var cached)) return (Partia)cached;
 
-        var val = db.Partie.Local.FirstOrDefault(p => p.Nazwa == nazwa)
-                 ?? await db.Partie.FirstOrDefaultAsync(p => p.Nazwa == nazwa, ct);
+        var val = await db.Partie.FirstOrDefaultAsync(p => p.Nazwa == nazwa, ct);
 
         if (val == null)
         {
@@ -242,8 +237,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         var key = $"polityk_{imionaNazwisko.Surname}_{imionaNazwisko.Name}";
         if (_localCache.TryGetValue(key, out var cached)) return (Polityk)cached;
 
-        var val = db.Politycy.Local.FirstOrDefault(p => p.Imie == imionaNazwisko.Name && p.Nazwisko == imionaNazwisko.Surname && p.DrugieImie == imionaNazwisko.SecondName)
-                 ?? await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == imionaNazwisko.Surname && p.Imie == imionaNazwisko.Name && p.DrugieImie == imionaNazwisko.SecondName, ct);
+        var val = await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == imionaNazwisko.Surname && p.Imie == imionaNazwisko.Name && p.DrugieImie == imionaNazwisko.SecondName, ct);
 
         if (val == null)
         {

@@ -8,7 +8,6 @@ using PoliticalPaths.Application.Imports.Transform;
 using PoliticalPaths.Application.Pipelines;
 using PoliticalPaths.Application.Results;
 using PoliticalPaths.Domain.Imports;
-using PoliticalPaths.Shared.Paths;
 
 namespace PoliticalPaths.Application.Imports;
 
@@ -76,7 +75,7 @@ public sealed class ImportSyncService(
 
         foreach (var file in filePaths)
         {
-            if (!File.Exists(Path.Combine(@"C:\Users\matja\source\repos\PoliticalPaths\source-data\inbox", file)))
+            if (!File.Exists(Path.Combine(options.InboxRoot, file)))
             {
                 throw new InvalidOperationException("File does not exist.");
             }
@@ -94,6 +93,7 @@ public sealed class ImportSyncService(
                     pipeline,
                     source,
                     fileName,
+                    options.InboxRoot,
                     options.ForceReimport,
                     progress,
                     cancellationToken);
@@ -133,13 +133,12 @@ public sealed class ImportSyncService(
       PipelineExecutionContext context,
       ImportSourceDefinition descriptor,
       string fileName,
+      string inboxRoot,
       bool forceReimport,
       IProgress<ImportProgressInfo>? progress,
       CancellationToken cancellationToken)
     {
-        var filePath = Path.Combine(
-        RepoPaths.InboxDirectory(),
-        fileName);
+        var filePath = Path.Combine(inboxRoot, fileName);
 
         if (!File.Exists(filePath))
         {
@@ -258,19 +257,15 @@ public sealed class ImportSyncService(
 
     private async Task ClearFileImportAsync(Guid importFileId, CancellationToken cancellationToken)
     {
-        var rows = await db.ImportRows.Where(r => r.ImportFileId == importFileId).ToListAsync(cancellationToken);
-        if (rows.Count > 0)
-            db.ImportRows.RemoveRange(rows);
-
-        var rowIds = rows.Select(r => r.Id).ToList();
-        if (rowIds.Count > 0)
-        {
-            var errors = await db.TransformationErrors
-                .Where(e => rowIds.Contains(e.ImportRowId))
-                .ToListAsync(cancellationToken);
-            if (errors.Count > 0)
-                db.TransformationErrors.RemoveRange(errors);
-        }
+        // Delete in the database instead of materializing every imported row
+        // and error into the change tracker (which is very expensive for a
+        // force reimport of a large file).
+        await db.TransformationErrors
+            .Where(e => e.ImportRow.ImportFileId == importFileId)
+            .ExecuteDeleteAsync(cancellationToken);
+        await db.ImportRows
+            .Where(r => r.ImportFileId == importFileId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
     }

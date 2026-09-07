@@ -16,7 +16,7 @@ services:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
 
   redis:
     image: redis:7.2-alpine
@@ -24,14 +24,53 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - politicalpaths_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
+
+  import-job:
+    build:
+      context: .
+      dockerfile: src/PoliticalPaths.ImportWorker/Dockerfile
+    container_name: politicalpaths-import
+    command: ["full-sync"]
+    restart: "no"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE};Uid=${MARIADB_USER};Pwd=${MARIADB_PASSWORD};"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD},abortConnect=false"
+      Import__InboxPath: "source-data/inbox"
+      Import__LogsPath: "logs/imports/app-.log"
+      Import__ReportsPath: "/app/reports"
+    volumes:
+      - ./source-data:/app/source-data:ro
+      - ./logs/imports:/app/logs/imports
+      - ./reports:/app/reports
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: src/PoliticalPaths.Dashboard/Dockerfile
+    container_name: politicalpaths-dashboard
+    restart: unless-stopped
+    depends_on:
+      import-job:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE};Uid=${MARIADB_USER};Pwd=${MARIADB_PASSWORD};"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD},abortConnect=false"
+    ports:
+      - "8080:8080"
 
 volumes:
   politicalpaths_mariadb_data:

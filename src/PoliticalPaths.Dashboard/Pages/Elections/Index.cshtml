@@ -1,0 +1,6 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Elections.IndexModel
+<div class="page-heading"><div><div class="page-kicker">Archiwum</div><h1>Wybory</h1><p class="page-intro">Zestawienie zaimportowanych wydarzeń wyborczych.</p></div></div>
+<table class="table table-striped"><thead><tr><th>Rodzaj</th><th>Data</th><th>Kadencja</th><th>Powiązane dane</th></tr></thead><tbody>
+@foreach (var election in Model.Elections) { <tr><td>@election.Type</td><td>@election.Date</td><td>@election.Term</td><td>@election.Starts</td></tr> }
+</tbody></table>

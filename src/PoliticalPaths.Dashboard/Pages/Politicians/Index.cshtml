@@ -1,0 +1,7 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Politicians.IndexModel
+<div class="page-heading"><div><div class="page-kicker">Baza osób</div><h1>Politycy</h1><p class="page-intro">Wyszukuj uczestników wyborów i porównuj ich mandaty.</p></div></div>
+<form method="get" class="input-group mb-3"><input class="form-control" name="q" value="@Model.Q" placeholder="Imię lub nazwisko" /><button class="btn btn-primary">Szukaj</button></form>
+<table class="table table-striped"><thead><tr><th>Polityk</th><th>Liczba wyborów</th><th>Mandaty ↓</th></tr></thead><tbody>
+@foreach (var politician in Model.Politicians) { <tr><td><a asp-page="Details" asp-route-id="@politician.Id">@politician.Name</a></td><td>@politician.Elections</td><td>@politician.Mandates</td></tr> }
+</tbody></table>

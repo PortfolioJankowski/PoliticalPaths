@@ -51,6 +51,9 @@ services:
       Import__InboxPath: "source-data/inbox"
       Import__LogsPath: "logs/imports/app-.log"
       Import__ReportsPath: "/app/reports"
+      Identity__SeedAdmin__Enabled: "true"
+      Identity__SeedAdmin__Email: "${SEED_ADMIN_EMAIL}"
+      Identity__SeedAdmin__Password: "${SEED_ADMIN_PASSWORD}"
     volumes:
       - ./source-data:/app/source-data:ro
       - ./logs/imports:/app/logs/imports
@@ -69,9 +72,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE};Uid=${MARIADB_USER};Pwd=${MARIADB_PASSWORD};"
       ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD},abortConnect=false"
+      DataProtection__KeysPath: "/app/data-protection-keys"
+    volumes:
+      - politicalpaths_dataprotection_keys:/app/data-protection-keys
     ports:
       - "8080:8080"
 
 volumes:
   politicalpaths_mariadb_data:
   politicalpaths_redis_data:
+  politicalpaths_dataprotection_keys:

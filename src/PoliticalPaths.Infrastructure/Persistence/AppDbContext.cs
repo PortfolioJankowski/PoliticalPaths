@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PoliticalPaths.Application.Abstractions.Persistence;
 using PoliticalPaths.Domain.Formacje;
@@ -6,11 +8,12 @@ using PoliticalPaths.Domain.Kadencje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
+using PoliticalPaths.Infrastructure.Identity;
 
 namespace PoliticalPaths.Infrastructure.Persistence;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
-    : DbContext(options), IAppDbContext
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
 {
     // ETL
     public DbSet<ImportBatch> ImportBatches => Set<ImportBatch>();

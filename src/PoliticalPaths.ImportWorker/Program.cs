@@ -9,6 +9,7 @@ using PoliticalPaths.Importers.Transform;
 using PoliticalPaths.Importers.Raw;
 using PoliticalPaths.Infrastructure;
 using PoliticalPaths.Infrastructure.Persistence;
+using PoliticalPaths.Infrastructure.Identity;
 using PoliticalPaths.Shared.Dtos.Sejm;
 using PoliticalPaths.Shared.Paths;
 using Serilog;
@@ -113,6 +114,13 @@ static async Task<int> RunSyncAsync(IHost host, string[] args)
 {
     var configuration = host.Services.GetRequiredService<IConfiguration>();
     await using var scope = host.Services.CreateAsyncScope();
+
+    if (!args.Contains("--no-identity-seed", StringComparer.OrdinalIgnoreCase))
+    {
+        var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
+        await identitySeeder.SeedAsync();
+    }
+
     var syncService = scope.ServiceProvider.GetRequiredService<IImportSyncService>();
 
     var repoRoot = RepoPaths.FindRepoRoot();
@@ -238,9 +246,9 @@ static int PrintHelp()
           - nowy plik → RAW + Transform (jeśli transformer zarejestrowany)
 
         Komendy:
-          sync | dev [--no-seed] [--force]
+          sync | dev [--no-seed] [--no-identity-seed] [--force]
           db migrate
-          full-sync [--no-seed] [--force]  (migracja + import + API Sejmu)
+          full-sync [--no-seed] [--no-identity-seed] [--force]  (migracja + import + API Sejmu)
           help
 
         Inbox: source-data/inbox/{pipeline-key}/

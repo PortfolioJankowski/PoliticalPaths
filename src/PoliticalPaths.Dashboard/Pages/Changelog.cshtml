@@ -1,0 +1,15 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.ChangelogModel
+@{
+    ViewData["Title"] = "Changelog";
+}
+<div class="page-heading"><div><div class="page-kicker">Rozwój aplikacji</div><h1>Changelog</h1><p class="page-intro">Najważniejsze zmiany w Political Paths.</p></div></div>
+@foreach (var release in Model.Releases) {
+    <article class="card p-4 mb-3 changelog-release">
+        <h2 class="section-title mt-0">@release.Version</h2>
+        @foreach (var group in release.Sections) {
+            <h3>@group.Name</h3>
+            <ul>@foreach (var item in group.Items) { <li>@item</li> }</ul>
+        }
+    </article>
+}

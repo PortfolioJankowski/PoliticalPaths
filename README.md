@@ -10,10 +10,16 @@ System do analizy ścieżek karier politycznych w Polsce (dane wyborcze, ETL z E
 | [docs/README.md](docs/README.md) | Architektura ETL |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Plan iteracji |
 | [docs/DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md) | Tabele po `db migrate` |
+| [docs/IMPORT-PIPELINE.md](docs/IMPORT-PIPELINE.md) | Import, idempotencja i usługi uzupełniające |
+| [docs/SECURITY.md](docs/SECURITY.md) | Logowanie, konta i rate limiting |
 
 ## Szybki start (developer)
 
 ### 1. Baza (raz)
+
+Skopiuj **.env-example** do **.env** i ustaw własne wartości, w tym
+**SEED_ADMIN_EMAIL** oraz **SEED_ADMIN_PASSWORD**. Hasło administratora musi mieć
+minimum 12 znaków, małą i wielką literę, cyfrę oraz znak specjalny.
 
 ```bash
 docker compose up -d

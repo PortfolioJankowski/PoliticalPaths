@@ -7,6 +7,9 @@ System do analizy ścieżek karier politycznych w Polsce.
 | Dokument | Opis |
 |----------|------|
 | **[DEVELOPER-GUIDE.md](DEVELOPER-GUIDE.md)** | **F5, inbox, ImportBatch, gdzie pisać transformery** |
+| **[DATABASE-SCHEMA.md](DATABASE-SCHEMA.md)** | **Aktualne tabele, kolumny, klucze, indeksy i relacje** |
+| **[IMPORT-PIPELINE.md](IMPORT-PIPELINE.md)** | **Przepływ sync/extend/full-sync i usługi uzupełniające** |
+| **[SECURITY.md](SECURITY.md)** | **Identity, role, seed administratora i rate limiting** |
 | [architecture/01-overview.md](architecture/01-overview.md) | Cele, założenia, przepływ danych |
 | [architecture/02-source-data.md](architecture/02-source-data.md) | Katalog `/source-data`, naming, immutable SOT |
 | [architecture/03-etl-two-stage.md](architecture/03-etl-two-stage.md) | RAW import → transform, replay, reimport |

@@ -12,4 +12,8 @@
     <ProjectReference Include="..\PoliticalPaths.Importers.Raw\PoliticalPaths.Importers.Raw.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

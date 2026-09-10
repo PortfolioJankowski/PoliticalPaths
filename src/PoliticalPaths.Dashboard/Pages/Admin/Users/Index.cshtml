@@ -1,0 +1,51 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Admin.Users.IndexModel
+@using PoliticalPaths.Infrastructure.Identity
+@{
+    ViewData["Title"] = "Użytkownicy";
+}
+<div class="page-heading"><div><div class="page-kicker">Administracja</div><h1>Użytkownicy</h1><p class="page-intro">Twórz konta, przydzielaj role i kontroluj dostęp do aplikacji.</p></div></div>
+
+@if (Model.StatusMessage is not null) { <div class="alert alert-info">@Model.StatusMessage</div> }
+@if (Model.TemporaryPassword is not null) {
+    <div class="alert alert-warning"><strong>Hasło tymczasowe:</strong> <code>@Model.TemporaryPassword</code><br />Skopiuj je teraz — nie będzie ponownie wyświetlone.</div>
+}
+
+<div class="card p-4 mb-4 form-card">
+    <h2 class="section-title mt-0">Nowe konto</h2>
+    <form method="post" asp-page-handler="Create" class="row g-3">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="col-md-7"><label asp-for="NewUser.Email" class="form-label">E-mail</label><input asp-for="NewUser.Email" class="form-control" /></div>
+        <div class="col-md-3"><label asp-for="NewUser.Role" class="form-label">Rola</label><select asp-for="NewUser.Role" class="form-select"><option value="@AppRoles.User">User</option><option value="@AppRoles.Admin">Admin</option></select></div>
+        <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit">Utwórz</button></div>
+    </form>
+</div>
+
+<div class="table-wrap">
+<table class="table">
+    <thead><tr><th>E-mail</th><th>Rola</th><th>Status</th><th>Operacje</th></tr></thead>
+    <tbody>
+    @foreach (var user in Model.Users) {
+        <tr>
+            <td>@user.Email @if (user.MustChangePassword) { <span class="badge-soft">zmiana hasła</span> }</td>
+            <td>
+                <form method="post" asp-page-handler="ChangeRole" class="d-flex gap-2">
+                    <input type="hidden" name="id" value="@user.Id" />
+                    <select name="role" class="form-select form-select-sm">
+                        <option value="@AppRoles.User" selected="@(user.Role == AppRoles.User)">User</option>
+                        <option value="@AppRoles.Admin" selected="@(user.Role == AppRoles.Admin)">Admin</option>
+                    </select>
+                    <button class="btn btn-sm btn-light border">Zapisz</button>
+                </form>
+            </td>
+            <td>@(user.IsActive ? (user.IsLockedOut ? "Blokada czasowa" : "Aktywne") : "Zablokowane")</td>
+            <td><div class="d-flex gap-2">
+                <form method="post" asp-page-handler="ResetPassword"><input type="hidden" name="id" value="@user.Id" /><button class="btn btn-sm btn-light border">Reset hasła</button></form>
+                <form method="post" asp-page-handler="ToggleActive"><input type="hidden" name="id" value="@user.Id" /><button class="btn btn-sm btn-light border">@(user.IsActive ? "Zablokuj" : "Odblokuj")</button></form>
+            </div></td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

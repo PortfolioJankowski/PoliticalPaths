@@ -1,0 +1,37 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Account.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logowanie · Political Paths</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-page">
+<main class="auth-card">
+    <div class="brand auth-brand"><span class="brand-mark">P</span><span>Political <b>Paths</b></span></div>
+    <h1>Zaloguj się</h1>
+    <p class="page-intro">Dostęp do panelu wymaga konta.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl" class="mt-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">E-mail</label>
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" autofocus />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Input.Password" class="form-label">Hasło</label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Zaloguj</button>
+    </form>
+</main>
+<partial name="_ValidationScriptsPartial" />
+</body>
+</html>

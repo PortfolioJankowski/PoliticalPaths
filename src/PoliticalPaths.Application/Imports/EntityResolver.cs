@@ -234,7 +234,7 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
 
     public async Task<Polityk> GetOrCreatePolitykAsync(NamesSurnameDto imionaNazwisko, CancellationToken ct = default)
     {
-        var key = $"polityk_{imionaNazwisko.Surname}_{imionaNazwisko.Name}";
+        var key = $"polityk_{imionaNazwisko.Surname}_{imionaNazwisko.Name}_{imionaNazwisko.SecondName}";
         if (_localCache.TryGetValue(key, out var cached)) return (Polityk)cached;
 
         var val = await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == imionaNazwisko.Surname && p.Imie == imionaNazwisko.Name && p.DrugieImie == imionaNazwisko.SecondName, ct);

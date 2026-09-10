@@ -16,8 +16,8 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<App
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? "Server=localhost;Port=3306;Database=politicalpaths;User=politicalpaths;Password=politicalpaths_dev;";
+        var connectionString = configuration.GetConnectionString("MariaDb")
+            ?? throw new InvalidOperationException("Connection string 'MariaDb' is not configured.");
 
         var serverVersion = new MySqlServerVersion(new Version(11, 4, 0));
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();

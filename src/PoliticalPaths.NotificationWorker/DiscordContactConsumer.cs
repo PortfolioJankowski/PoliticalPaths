@@ -39,7 +39,7 @@ public sealed class DiscordContactConsumer(
                 if (await db.InboxMessages.AnyAsync(x => x.MessageId == messageId && x.Consumer == ConsumerName, stoppingToken))
                 {
                     await channel.BasicAckAsync(delivery.DeliveryTag, false, stoppingToken);
-                    return;1
+                    return;
                 }
                 var message = JsonSerializer.Deserialize<ContactMessageSubmitted>(Encoding.UTF8.GetString(delivery.Body.Span))
                     ?? throw new JsonException("Contact message payload is empty.");

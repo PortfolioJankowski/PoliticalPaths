@@ -38,6 +38,47 @@ flowchart LR
 8. **MandateGeneratorService** tworzy pierwsze mandaty dla wyników z flagą CzyMandat.
 9. **ImportReportService** zapisuje raport HTML oraz końcowe liczniki pipeline’u.
 
+## Dwa źródła opisujące dwa różne momenty
+
+Import danych sejmowych jest dwuetapowy, ponieważ PKW i API Sejmu odpowiadają na inne pytania.
+
+| Źródło | Pytanie, na które odpowiada | Dane |
+|---|---|---|
+| **Arkusze PKW** | Kto kandydował i jaki był wynik w dniu wyborów? | Wybory, okręgi i ich statystyki, komitety, listy, miejsca na listach, kandydaci, partie, głosy oraz CzyMandat. |
+| **API Sejmu** | Kto występował w składzie danej kadencji i jakie informacje publikuje Kancelaria Sejmu? | Dane biograficzne, kontaktowe, zawód, wykształcenie, klub oraz pola InactiveCause i InactiveReason. |
+
+PKW jest źródłem prawdy dla startów i wyniku głosowania. Arkusz nie opisuje późniejszego przebiegu kadencji. Nie wynika z niego, że poseł po roku zrzekł się mandatu, zmarł albo utracił mandat z innej przyczyny. Nie wskazuje też bezpośrednio osoby, która faktycznie weszła do Sejmu na zwolnione miejsce. Bez drugiego etapu baza znałaby wyłącznie skład wybrany w dniu głosowania, a nie zmiany zachodzące podczas kadencji.
+
+## Szczegółowa logika rozszerzania z API Sejmu
+
+Komenda **extend** jest dziś uruchamiana dla kadencji IX i X.
+
+1. **SejmApiClient** pobiera metadane kadencji z endpointu term{n} oraz listę posłów z term{n}/MP. Nieudana odpowiedź HTTP przerywa operację.
+2. **SejmDataExtender** wybiera z lokalnej bazy polityków, którzy według PKW uzyskali mandat w wyborach do Sejmu w odpowiedniej kadencji. Wstępny filtr nazwisk ogranicza ilość wczytywanych danych.
+3. Każdy polityk jest dopasowywany do listy API przez dokładne, nieczułe na wielkość liter porównanie imienia i nazwiska.
+4. Brak dopasowania pozostawia rekord bez zmian. Jedno dopasowanie pozwala kontynuować. Wiele dopasowań nie jest rozstrzygane automatycznie: warianty są zapisywane w InformacjeDodatkowe do późniejszej kontroli.
+5. Przy jednoznacznym dopasowaniu data i miejsce urodzenia oraz e-mail aktualizują Polityka. Zawód i wykształcenie aktualizują StartWyborczy w konkretnej kadencji, ponieważ mogą zmieniać się w czasie.
+6. Jeżeli API nie zwraca InactiveCause, mandat pozostaje aktywny i procedura dla tej osoby kończy się.
+7. Jeżeli InactiveCause występuje, system odnajduje Mandat utworzony z właściwego StartuWyborczego i zmienia jego status na Wygasniety.
+8. Przyczyna „Zrzeczenie” tworzy zdarzenie Zrzeczenie, „Zgon” tworzy Zgon, a inne wartości są mapowane na ogólne Wygasniecie. InactiveReason staje się opisem. Przed dodaniem wykonywana jest kontrola, czy mandat nie ma już zdarzenia tego typu.
+9. Nowe zdarzenie wygaśnięcia uruchamia **MandatSuccessionResolver**.
+10. Resolver znajduje listę wyborczą poprzedniego posła i pobiera kandydatów z tej samej listy, którzy według PKW nie uzyskali mandatu oraz nie mają już mandatu w tej kadencji.
+11. Kandydaci są sortowani malejąco po liczbie głosów, a przy remisie rosnąco po pozycji na liście.
+12. Resolver sprawdza tę kolejność względem listy członków Sejmu z API. Pierwszy pasujący kandydat jest traktowany jako następca; jego dane są uzupełniane, a system tworzy Mandat typu Sukcesja i zdarzenie Wstąpienie.
+
+### Dlaczego następca musi istnieć w obu źródłach?
+
+PKW pozwala wyznaczyć kolejność niewybranych kandydatów z tej samej listy, ale sama kolejność nie dowodzi objęcia mandatu. Kandydat może nie skorzystać z pierwszeństwa. Obecność w danych API Sejmu jest dodatkowym sygnałem, że dana osoba rzeczywiście znalazła się w składzie kadencji. Mechanizm łączy więc wynik wyborczy z późniejszym składem zamiast automatycznie przyznawać mandat każdej kolejnej osobie z listy.
+
+### Ograniczenia obecnej implementacji
+
+- Dopasowanie po imieniu i nazwisku nie jest odpornym identyfikatorem osoby. Kolizje wymagają weryfikacji.
+- API dostarcza przyczynę i opis nieaktywności, lecz obecny DTO nie daje wiarygodnej urzędowej daty zdarzenia.
+- Data wygaśnięcia jest dziś technicznie ustawiana na dzień po rozpoczęciu dotychczasowego mandatu.
+- Data sukcesji jest dziś ustawiana na dzień po początku kadencji, a nie na rzeczywisty dzień objęcia mandatu.
+- System nie modeluje zawiadomienia Marszałka Sejmu, odmowy przyjęcia pierwszeństwa ani dokumentu urzędowego potwierdzającego zmianę.
+- Wynik należy traktować jako rekonstrukcję analityczną. Dokładne daty i podstawy prawne wymagają potwierdzenia w dokumentach urzędowych.
+
 ## Idempotencja i błędy
 
 - ImportBatch jest identyfikowany przez PipelineKey, a plik przez parę batch + SHA-256.

@@ -1,0 +1,135 @@
+@page
+@{
+    ViewData["Title"] = "Dokumentacja";
+}
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Jak działają dane</div>
+        <h1>Dokumentacja Political Paths</h1>
+        <p class="page-intro">Przewodnik po modelu bazy i procesie, który zamienia pliki źródłowe w dane widoczne w aplikacji.</p>
+    </div>
+</div>
+
+<nav class="documentation-nav card">
+    <a href="#database">Architektura bazy</a>
+    <a href="#import">Proces importu</a>
+    <a href="#enrichment">Rozszerzanie z API Sejmu</a>
+    <a href="#quality">Jakość i ograniczenia</a>
+</nav>
+
+<section id="database" class="documentation-section">
+    <div class="page-kicker">Architektura bazy</div>
+    <h2>Od źródła do historii politycznej</h2>
+    <p class="page-intro">MariaDB przechowuje osobno surowy materiał importowy, fakty wyborcze, informacje o politykach i historię mandatów. Dzięki temu można sprawdzić zarówno wynik transformacji, jak i jego pochodzenie.</p>
+
+    <div class="architecture-grid">
+        <article class="architecture-card import-layer"><span>01</span><h3>Warstwa importu</h3><p>Batch, plik, surowy wiersz oraz błędy transformacji. Ta warstwa zachowuje ślad pochodzenia danych.</p><small>ImportBatches · ImportFiles · ImportRows · TransformationErrors</small></article>
+        <article class="architecture-card election-layer"><span>02</span><h3>Wybory</h3><p>Wydarzenia wyborcze, okręgi, statystyki okręgów, komitety, listy, starty i wyniki.</p><small>Wybory · OkregWyborczy · ListaWyborcza · StartyWyborcze</small></article>
+        <article class="architecture-card people-layer"><span>03</span><h3>Politycy i partie</h3><p>Jedna osoba może być łączona z wieloma startami, przynależnościami i kadencjami.</p><small>Politycy · Partia · PartieCzlonkostwa</small></article>
+        <article class="architecture-card mandate-layer"><span>04</span><h3>Mandaty</h3><p>Mandat jest oddzielony od wyniku wyborów i ma własną historię objęcia, sukcesji oraz wygaśnięcia.</p><small>Mandaty · ZdarzeniaMandatowe</small></article>
+    </div>
+
+    <div class="card p-4 mt-3">
+        <h3 class="section-title mt-0">Najważniejsze relacje</h3>
+        <div class="relationship-flow">
+            <span>Wybory</span><b>→</b><span>Okręg</span><b>→</b><span>Lista</span><b>→</b><span>Start polityka</span><b>→</b><span>Wynik</span><b>→</b><span>Mandat</span>
+        </div>
+        <ul class="documentation-list">
+            <li>Szczegóły okręgu są snapshotem przypisanym do konkretnych wyborów, więc ludność i liczba uprawnionych nie nadpisują historii.</li>
+            <li>Lista łączy wybory, okręg i komitet; wszystkie osoby z jej składu można porównać w obrębie tego samego startu.</li>
+            <li>Flaga uzyskania mandatu opisuje wynik wyborów, a tabela mandatów opisuje faktyczne sprawowanie funkcji w czasie.</li>
+        </ul>
+    </div>
+
+    <div class="card p-4 mt-3">
+        <div class="page-kicker">Przykład relacji</div>
+        <h3 class="section-title mt-0">Co naprawdę oznacza „polityk startował w wyborach”?</h3>
+        <p class="page-intro">W bazie nie jest to pojedyncza informacja przy rekordzie polityka. Start jest osobnym faktem, który spina osobę z pełnym kontekstem wyborczym.</p>
+        <div class="entity-chain">
+            <div><strong>Polityk</strong><span>kanoniczna osoba</span></div><b>+</b>
+            <div><strong>Wybory</strong><span>data, kadencja, rodzaj</span></div><b>+</b>
+            <div><strong>Okręg</strong><span>numer i rodzaj wyborów</span></div><b>+</b>
+            <div><strong>Lista</strong><span>numer oraz komitet</span></div><b>+</b>
+            <div><strong>Start</strong><span>miejsce na liście i afiliacja</span></div><b>+</b>
+            <div><strong>Wynik</strong><span>głosy i mandat wyborczy</span></div>
+        </div>
+        <p class="documentation-note">Przykład: ta sama osoba może kandydować w 2015 roku z listy nr 5, miejsca 12, w okręgu 19, a w 2019 roku z innej listy, miejsca i okręgu. Dlatego te wartości należą do StartuWyborczego, a nie do Polityka.</p>
+        <dl class="documentation-definitions">
+            <div><dt>Polityk</dt><dd>Opisuje osobę niezależnie od liczby wyborów: imiona, nazwisko, datę urodzenia i dane uzupełniające.</dd></div>
+            <div><dt>Wybory</dt><dd>Wyznaczają konkretny kontekst czasowy: datę, kadencję, turę, ordynację i rodzaj wyborów.</dd></div>
+            <div><dt>Okręg + szczegóły okręgu</dt><dd>Okręg ma numer, natomiast liczba mieszkańców, uprawnionych, mandatów, list i kandydatów jest snapshotem dla danych wyborów.</dd></div>
+            <div><dt>Lista wyborcza</dt><dd>Łączy konkretny numer listy z komitetem, okręgiem i wyborami. Jej skład tworzą starty wszystkich kandydatów.</dd></div>
+            <div><dt>Start wyborczy</dt><dd>Łączy osobę z wyborami i listą oraz przechowuje pozycję, partię, partię popierającą, zawód i miejsce zamieszkania z danego źródła.</dd></div>
+            <div><dt>Wynik a mandat</dt><dd>Wynik mówi, ile głosów zdobył kandydat i czy został wybrany. Mandat opisuje późniejsze faktyczne sprawowanie funkcji i jego zdarzenia w czasie.</dd></div>
+        </dl>
+    </div>
+</section>
+
+<section id="import" class="documentation-section">
+    <div class="page-kicker">Proces importu</div>
+    <h2>Jak powstają dane w aplikacji</h2>
+    <div class="process-timeline">
+        <article><span>1</span><div><h3>Odkrycie plików</h3><p>Worker odczytuje konfigurację pipeline’ów i skanuje pliki Excel w katalogu inbox.</p></div></article>
+        <article><span>2</span><div><h3>Kontrola duplikatów</h3><p>Dla każdego pliku obliczany jest SHA-256. Plik wcześniej przetworzony w tym pipeline jest pomijany.</p></div></article>
+        <article><span>3</span><div><h3>Zapis RAW</h3><p>Arkusze są normalizowane, a każdy wiersz trafia do bazy wraz z oryginalnym JSON-em i identyfikatorem źródła.</p></div></article>
+        <article><span>4</span><div><h3>Transformacja domenowa</h3><p>Transformer rozpoznaje istniejące encje i buduje wybory, okręgi, listy, polityków, starty oraz wyniki.</p></div></article>
+        <article><span>5</span><div><h3>Mandaty i wzbogacanie</h3><p>Wyniki tworzą mandaty początkowe. API Sejmu uzupełnia dane osób, wygaśnięcia mandatów i prawdopodobne sukcesje.</p></div></article>
+        <article><span>6</span><div><h3>Raport</h3><p>Na końcu powstaje raport z liczbą plików, wierszy, ostrzeżeń i błędów wymagających weryfikacji.</p></div></article>
+    </div>
+</section>
+
+<section id="enrichment" class="documentation-section">
+    <div class="page-kicker">PKW + API Sejmu</div>
+    <h2>Dlaczego baza jest rozszerzana po imporcie?</h2>
+    <p class="page-intro">Arkusze PKW opisują moment wyborów. Pozwalają odtworzyć kandydatury i wynik głosowania, ale nie opisują całego życia kadencji. Skład Sejmu może później zmieniać się przez zrzeczenie, śmierć, wygaśnięcie mandatu albo wejście kolejnej osoby z listy.</p>
+
+    <div class="source-comparison">
+        <article class="card">
+            <div class="source-heading"><span>1</span><div><small>Źródło podstawowe</small><h3>Arkusze PKW</h3></div></div>
+            <h4>Co otrzymujemy?</h4>
+            <ul>
+                <li>wybory i datę głosowania;</li>
+                <li>okręgi oraz ich statystyki;</li>
+                <li>komitety, listy i pozycje kandydatów;</li>
+                <li>dane kandydatów, liczbę głosów i informację, kto uzyskał mandat w wyniku wyborów.</li>
+            </ul>
+            <h4>Czego nie wiemy?</h4>
+            <p>Arkusz nie mówi, kto później przestał być posłem, z jakiej przyczyny ani kto wszedł na zwolnione miejsce.</p>
+        </article>
+        <article class="card">
+            <div class="source-heading"><span>2</span><div><small>Źródło uzupełniające</small><h3>API Sejmu</h3></div></div>
+            <h4>Co uzupełniamy?</h4>
+            <ul>
+                <li>datę i miejsce urodzenia oraz e-mail;</li>
+                <li>zawód i wykształcenie dla startu w kadencji;</li>
+                <li>informację o nieaktywności posła i jej opis;</li>
+                <li>kandydatów, którzy nie wygrali w dniu wyborów, ale później znaleźli się w składzie Sejmu.</li>
+            </ul>
+            <h4>Jaki jest rezultat?</h4>
+            <p>Powstaje historia mandatu odróżniająca wybór bezpośredni od późniejszej sukcesji.</p>
+        </article>
+    </div>
+
+    <div class="card p-4 mt-3">
+        <h3 class="section-title mt-0">Logika rozszerzania krok po kroku</h3>
+        <ol class="enrichment-steps">
+            <li><span>1</span><div><strong>Wybór kadencji</strong><p>Worker pobiera z API Sejmu metadane i listę posłów dla kadencji IX oraz X.</p></div></li>
+            <li><span>2</span><div><strong>Zawężenie kandydatów</strong><p>Do rozszerzenia trafiają osoby oznaczone przez PKW jako wybrane do Sejmu w odpowiadającej kadencji.</p></div></li>
+            <li><span>3</span><div><strong>Dopasowanie osoby</strong><p>Rekord PKW jest porównywany z API po imieniu i nazwisku. Jedno dopasowanie jest aktualizowane; wiele dopasowań zapisuje ostrzeżenie do informacji dodatkowych.</p></div></li>
+            <li><span>4</span><div><strong>Aktualizacja danych</strong><p>Dane biograficzne trafiają do Polityka, a zawód i wykształcenie do StartuWyborczego z właściwej kadencji.</p></div></li>
+            <li><span>5</span><div><strong>Wykrycie wygaśnięcia</strong><p>Jeżeli API zwraca InactiveCause, mandat jest oznaczany jako wygasły. Powstaje idempotentne zdarzenie: zrzeczenie, zgon albo ogólne wygaśnięcie.</p></div></li>
+            <li><span>6</span><div><strong>Poszukiwanie następcy</strong><p>System analizuje niewybranych kandydatów z tej samej listy, kolejno według liczby głosów i miejsca na liście. Pierwsza osoba obecna w składzie z API otrzymuje mandat typu Sukcesja i zdarzenie Wstąpienie.</p></div></li>
+        </ol>
+    </div>
+</section>
+
+<section id="quality" class="documentation-section">
+    <div class="page-kicker">Jakość i ograniczenia</div>
+    <h2>Jak interpretować informacje</h2>
+    <div class="row g-3">
+        <div class="col-lg-4"><div class="card p-4 h-100"><h3>Idempotencja</h3><p class="page-intro">Checksumy i rozwiązywanie istniejących encji ograniczają duplikaty. Wymuszony replay wymaga dodatkowej ostrożności.</p></div></div>
+        <div class="col-lg-4"><div class="card p-4 h-100"><h3>Dopasowanie osób</h3><p class="page-intro">Dane z API Sejmu są dziś dopasowywane głównie po imieniu i nazwisku. Niejednoznaczne przypadki wymagają kontroli.</p></div></div>
+        <div class="col-lg-4"><div class="card p-4 h-100"><h3>Daty sukcesji</h3><p class="page-intro">Rekonstrukcja sukcesji pomaga w analizie, ale dokładne daty i podstawy prawne należy potwierdzić w źródłach urzędowych.</p></div></div>
+    </div>
+    <div class="alert alert-warning mt-3 mb-0"><strong>Ważne:</strong> obecna integracja nie pobiera urzędowej daty wygaśnięcia ani objęcia mandatu. Daty zdarzeń sukcesji są technicznym przybliżeniem, dlatego nie powinny być traktowane jako samodzielne ustalenie prawne.</div>
+</section>

@@ -75,7 +75,7 @@ public sealed class SejmModernTransformer(
     {
         var nrOkregu = ParseInt(excelRow, DistrictsHeaders.NumerOkręgu);
         var liczbaMandatow = ParseInt(excelRow, DistrictsHeaders.LiczbaMandatów) ?? 0;
-        var mieszkancy = ParseInt(excelRow, DistrictsHeaders.LiczbaMieszkańców) ?? 0;
+        var mieszkancy = ParseInt(excelRow, DistrictsHeaders.LiczbaMieszkańców);
         var uprawnieni = ParseInt(excelRow, DistrictsHeaders.LiczbaWyborców) ?? 0;
         var liczbaList = ParseInt(excelRow, DistrictsHeaders.LiczbaList);
         var liczbaKandydatow = ParseInt(excelRow, DistrictsHeaders.LiczbaKandydatow);
@@ -110,13 +110,17 @@ public sealed class SejmModernTransformer(
         var komitetNazwa = GetValue(excelRow, CandidatesHeaders.NazwaKomitetu);
         var partiaNazwa = GetValue(excelRow, CandidatesHeaders.PrzynależnośćDoPartii);
 
-        if (partiaNazwa!.Contains("członek partii politycznej: "))
+        // Starsze arkusze PKW (m.in. 2005) nie zawsze zawierają
+        // przynależność partyjną. Jest to pole opcjonalne.
+        if (!string.IsNullOrWhiteSpace(partiaNazwa) &&
+            partiaNazwa.Contains("członek partii politycznej: ", StringComparison.OrdinalIgnoreCase))
         {
-            partiaNazwa = partiaNazwa!.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+            partiaNazwa = partiaNazwa.Replace("członek partii politycznej: ", "", StringComparison.OrdinalIgnoreCase).Trim();
         }
-        else if (partiaNazwa!.Contains("członek partii "))
+        else if (!string.IsNullOrWhiteSpace(partiaNazwa) &&
+                 partiaNazwa.Contains("członek partii ", StringComparison.OrdinalIgnoreCase))
         {
-            partiaNazwa = partiaNazwa!.Replace("członek partii ", "", StringComparison.OrdinalIgnoreCase).Trim();
+            partiaNazwa = partiaNazwa.Replace("członek partii ", "", StringComparison.OrdinalIgnoreCase).Trim();
         }
         
         var popierajacaPartiaNazwa = GetValue(excelRow, CandidatesHeaders.Poparcie);
@@ -127,6 +131,8 @@ public sealed class SejmModernTransformer(
             {
                 popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
                 popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierany przez partię polityczną: ", "", StringComparison.OrdinalIgnoreCase).Trim();
+                popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierany przez ", "", StringComparison.OrdinalIgnoreCase).Trim();
+                popierajacaPartiaNazwa = popierajacaPartiaNazwa!.Replace("popierana przez ", "", StringComparison.OrdinalIgnoreCase).Trim();
             }
         }
 
@@ -150,13 +156,13 @@ public sealed class SejmModernTransformer(
         
         var polityk = await entityResolver.GetOrCreatePolitykAsync(imieNazwiskoDto, ct);
 
-        var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa!, ct);
+        var partia = await entityResolver.GetOrCreatePartiaAsync(partiaNazwa, ct);
         if (partia != null)
         {
             await clubService.UpdateMembershipAsync(polityk.Id, partia.Id, wybory.Id);
         }
 
-        var popierajacaPartia = await entityResolver.GetOrCreatePartiaAsync(popierajacaPartiaNazwa!, ct);
+        var popierajacaPartia = await entityResolver.GetOrCreatePartiaAsync(popierajacaPartiaNazwa, ct);
 
         var wyniki = entityResolver.CreateWynikiAsync(glosy, czyMandat);
 

@@ -55,6 +55,8 @@ public abstract class ExcelFileTransformerBase(
 
         try
         {
+            file.RawImportStartedAt ??= DateTime.UtcNow;
+
             var rows = await Db.ImportRows
                 .Where(r => r.ImportFileId == file.Id)
                 .ToListAsync(cancellationToken);
@@ -113,6 +115,7 @@ public abstract class ExcelFileTransformerBase(
             file.TransformedRows = transformed;
             file.FailedRows = failed;
             file.Status = failed == 0 ? ImportFileStatus.Completed : ImportFileStatus.PartiallyCompleted;
+            file.RawImportCompletedAt = DateTime.UtcNow;
 
             return new TransformFileResult(transformed, failed, warnings);
         }

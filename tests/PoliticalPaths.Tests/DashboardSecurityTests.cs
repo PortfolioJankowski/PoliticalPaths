@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PoliticalPaths.Infrastructure.Identity;
 using PoliticalPaths.Infrastructure.Persistence;
+using PoliticalPaths.Application.Abstractions.Imports.Deserialization;
+using PoliticalPaths.Dashboard.Services;
 using Xunit;
 
 namespace PoliticalPaths.Tests;
@@ -53,6 +55,64 @@ public sealed class DashboardSecurityTests
     }
 
     [Fact]
+    public async Task Authenticated_user_can_view_documentation()
+    {
+        await using var factory = new DashboardFactory(authenticated: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        var response = await client.GetAsync("/Documentation");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.True(response.IsSuccessStatusCode, html);
+        Assert.Contains("Architektura bazy", html);
+        Assert.Contains("Proces importu", html);
+        Assert.Contains("Dlaczego baza jest rozszerzana", html);
+        Assert.Contains("API Sejmu", html);
+    }
+
+    [Fact]
+    public async Task Authenticated_user_can_view_district_history()
+    {
+        await using var factory = new DashboardFactory(authenticated: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        var response = await client.GetAsync("/Districts");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.True(response.IsSuccessStatusCode, html);
+        Assert.Contains("Jak zmieniały się okręgi", html);
+        Assert.Contains("Sejm i Senat są analizowane osobno", html);
+    }
+
+    [Fact]
+    public async Task Contact_form_stores_message_and_outbox_atomically()
+    {
+        await using var factory = new DashboardFactory(authenticated: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost")
+        });
+        var response = await client.GetAsync("/Contact");
+        Assert.True(response.IsSuccessStatusCode);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var submissions = scope.ServiceProvider.GetRequiredService<ContactSubmissionService>();
+        await submissions.SubmitAsync(Guid.NewGuid(), "test@example.local", "Sugestia", "Test formularza", "To jest testowa wiadomość kontaktowa.");
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await db.ContactMessages.CountAsync());
+        var outbox = Assert.Single(await db.OutboxMessages.ToListAsync());
+        Assert.Equal("notification.discord.contact-submitted", outbox.RoutingKey);
+        Assert.Null(outbox.ProcessedAtUtc);
+    }
+
+
+    [Fact]
     public async Task Login_policy_returns_429_after_limit()
     {
         await using var factory = new DashboardFactory(authenticated: false);
@@ -82,8 +142,10 @@ public sealed class DashboardSecurityTests
                 services.RemoveAll<DbContextOptions<AppDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
                 services.RemoveAll<AppDbContext>();
+                services.RemoveAll<ElectionSourceCatalog>();
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+                services.AddSingleton(new ElectionSourceCatalog(new ImportConfiguration()));
 
                 if (authenticated)
                 {
@@ -113,6 +175,7 @@ public sealed class DashboardSecurityTests
             {
                 new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Name, "test@example.local"),
+                new Claim(ClaimTypes.Email, "test@example.local"),
                 new Claim(ClaimTypes.Role, AppRoles.User)
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, TestScheme));

@@ -1,0 +1,101 @@
+@model PoliticalPaths.Dashboard.Services.ParticipationItem
+@{
+    var districtPanelId = $"participation-district-{Model.StartId:N}";
+    var listPanelId = $"participation-list-{Model.StartId:N}";
+}
+<article class="card participation-card mb-3">
+    <header class="participation-header">
+        <div>
+            <div class="page-kicker">@Model.Date.ToString("dd.MM.yyyy")</div>
+            <h3>@Model.Election</h3>
+            <p class="page-intro">@Model.Committee</p>
+        </div>
+        <span class="participation-result @(Model.Mandate ? "won" : "")">@(Model.Mandate ? "Mandat" : "Bez mandatu")</span>
+    </header>
+
+    <div class="participation-summary">
+        <div><span>Okręg</span><strong>@(Model.District?.ToString() ?? "—")</strong></div>
+        <div><span>Lista / pozycja</span><strong>@(Model.ListNumber?.ToString() ?? "—") / @(Model.PositionOnList?.ToString() ?? "—")</strong></div>
+        <div><span>Głosy</span><strong>@Model.Votes.ToString("N0")</strong></div>
+        <div><span>Udział w liście</span><strong>@(Model.ListVoteShare?.ToString("0.##") ?? "—")%</strong></div>
+        <div><span>Partia</span><strong>@(Model.Party ?? Model.SupportingParty ?? "—")</strong></div>
+    </div>
+
+    <div class="participation-expand">
+        <button class="btn btn-sm btn-light border expand-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#@districtPanelId"
+                aria-expanded="false"
+                aria-controls="@districtPanelId">
+            <span class="show-label">Okręg wyborczy</span>
+            <span class="hide-label">Ukryj okręg</span>
+            <span class="expand-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <button class="btn btn-sm btn-light border expand-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#@listPanelId"
+                aria-expanded="false"
+                aria-controls="@listPanelId">
+            <span class="show-label">Kandydaci z listy <span class="detail-count">@Model.ListCandidates.Count</span></span>
+            <span class="hide-label">Ukryj listę</span>
+            <span class="expand-chevron" aria-hidden="true">⌄</span>
+        </button>
+    </div>
+
+    <div class="collapse participation-context" id="@districtPanelId">
+        <div class="participation-context-inner compact-context">
+            <section>
+                <h4>Okręg wyborczy nr @(Model.District?.ToString() ?? "—")</h4>
+                @if (Model.DistrictResidents is null) {
+                    <p class="page-intro">Brak szczegółowych danych demograficznych dla tego okręgu i wyborów.</p>
+                } else {
+                    <div class="district-stats">
+                        <div><strong>@Model.DistrictResidents.Value.ToString("N0")</strong><span>Mieszkańcy</span></div>
+                        <div><strong>@Model.DistrictEligibleVoters!.Value.ToString("N0")</strong><span>Uprawnieni</span></div>
+                        <div><strong>@Model.DistrictSeats</strong><span>Mandaty</span></div>
+                        <div><strong>@Model.DistrictLists</strong><span>Listy</span></div>
+                        <div><strong>@Model.DistrictCandidates</strong><span>Kandydaci</span></div>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+
+    <div class="collapse participation-context" id="@listPanelId">
+        <div class="participation-context-inner">
+            <section class="list-roster standalone-roster">
+                <div class="list-roster-heading">
+                    <div>
+                        <h4>Kandydaci z listy nr @(Model.ListNumber?.ToString() ?? "—")</h4>
+                        <p>@Model.Committee</p>
+                    </div>
+                    <span class="badge-soft">@Model.ListCandidates.Count kandydatów</span>
+                </div>
+                @if (Model.ListCandidates.Count == 0) {
+                    <p class="page-intro">Ten start nie jest powiązany z listą wyborczą albo brakuje jej składu.</p>
+                } else {
+                    <div class="table-wrap shadow-none">
+                        <table class="table candidate-table">
+                            <thead><tr><th>Pozycja</th><th>Kandydat</th><th>Głosy</th><th>Wynik</th></tr></thead>
+                            <tbody>
+                            @foreach (var candidate in Model.ListCandidates) {
+                                <tr class="@(candidate.IsCurrentPolitician ? "current-candidate" : "")">
+                                    <td>@(candidate.PositionOnList?.ToString() ?? "—")</td>
+                                    <td>
+                                        <a asp-page="/Politicians/Details" asp-route-id="@candidate.PoliticianId">@candidate.Name</a>
+                                        @if (candidate.IsCurrentPolitician) { <span class="current-label">ten profil</span> }
+                                    </td>
+                                    <td>@candidate.Votes.ToString("N0")</td>
+                                    <td>@if (candidate.Mandate) { <span class="participation-result won">Mandat</span> } else { <span>—</span> }</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</article>

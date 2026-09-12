@@ -106,7 +106,7 @@ public sealed class ImportSyncService(
 
         var transformSkipped = pipeline.Sources.Count > 0;
 
-        batch.Finish();
+        batch.Finish(summary.RowsFailed > 0);
      
         await db.SaveChangesAsync(cancellationToken);
 

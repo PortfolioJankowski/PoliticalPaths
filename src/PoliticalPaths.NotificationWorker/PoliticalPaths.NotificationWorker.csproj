@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PoliticalPaths.Infrastructure\PoliticalPaths.Infrastructure.csproj" />
+    <ProjectReference Include="..\PoliticalPaths.Shared\PoliticalPaths.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup><Content Include="..\..\config\rabbitmq.topology.json" Link="rabbitmq.topology.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

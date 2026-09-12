@@ -187,7 +187,8 @@ public sealed class IndexModel(
         {
             var roles = await userManager.GetRolesAsync(user);
             rows.Add(new UserRow(user.Id, user.Email ?? user.UserName ?? "—", roles.FirstOrDefault() ?? "—",
-                user.IsActive, user.LockoutEnd > DateTimeOffset.UtcNow, user.MustChangePassword));
+                user.IsActive, user.LockoutEnd > DateTimeOffset.UtcNow, user.MustChangePassword,
+                user.EmailNotificationsEnabled));
         }
         Users = rows;
     }
@@ -222,5 +223,5 @@ public sealed class IndexModel(
     }
 
     public sealed record UserRow(Guid Id, string Email, string Role, bool IsActive, bool IsLockedOut,
-        bool MustChangePassword);
+        bool MustChangePassword, bool EmailNotificationsEnabled);
 }

@@ -1,0 +1,24 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Admin.Email.IndexModel
+@{
+    ViewData["Title"] = "Wysyłka e-mail";
+}
+<div class="page-heading"><div><div class="page-kicker">Administracja</div><h1>Wyślij alert e-mail</h1><p class="page-intro">Wiadomość trafi wyłącznie do aktywnych użytkowników, którzy wyrazili zgodę.</p></div><span class="badge-soft">@Model.SubscriberCount odbiorców</span></div>
+@if (Model.StatusMessage is not null) { <div class="alert alert-success">@Model.StatusMessage</div> }
+<div class="card p-4 form-card mb-4">
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div class="mb-3"><label asp-for="Input.Subject" class="form-label">Temat</label><input asp-for="Input.Subject" class="form-control" /><span asp-validation-for="Input.Subject" class="text-danger"></span></div>
+        <div class="mb-3"><label asp-for="Input.Body" class="form-label">Treść wiadomości</label><textarea asp-for="Input.Body" class="form-control" rows="10"></textarea><span asp-validation-for="Input.Body" class="text-danger"></span></div>
+        @if (Model.SubscriberCount == 0) {
+            <button type="submit" class="btn btn-primary" disabled>Dodaj wysyłkę do kolejki</button>
+        } else {
+            <button type="submit" class="btn btn-primary">Dodaj wysyłkę do kolejki</button>
+        }
+    </form>
+</div>
+<h2 class="section-title">Ostatnie kampanie</h2>
+<div class="table-wrap"><table class="table"><thead><tr><th>Utworzono</th><th>Temat</th><th>Odbiorcy</th><th>Wysłano</th><th>Pominięto</th><th>Błędy</th></tr></thead><tbody>
+@foreach (var item in Model.Recent) { <tr><td>@item.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td><td>@item.Subject</td><td>@item.Recipients</td><td>@item.Sent</td><td>@item.Skipped</td><td>@item.Failed</td></tr> }
+</tbody></table></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

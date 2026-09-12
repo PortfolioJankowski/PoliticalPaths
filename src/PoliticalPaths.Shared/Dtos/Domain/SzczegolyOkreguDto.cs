@@ -3,7 +3,7 @@
 public record SzczegolyOkreguDto(
     Guid OkregId,
     int RokWyborow,
-    int Mieszkancy,
+    int? Mieszkancy,
     int Uprawnieni,
     int LiczbaMandatow,
     int LiczbaList,

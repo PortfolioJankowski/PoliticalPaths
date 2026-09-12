@@ -30,6 +30,41 @@ erDiagram
 
 Nie wszystkie identyfikatory logiczne są obecnie fizycznymi FK. Część powiązań list i komitetów jest egzekwowana przez transformery; należy to uwzględnić przy ręcznych modyfikacjach.
 
+## Jak modelowany jest pojedynczy start wyborczy
+
+Zdanie „polityk wystartował w wyborach” ukrywa kilka niezależnych faktów. Baza rozdziela je, ponieważ ta sama osoba może wielokrotnie kandydować z różnych miejsc, list, komitetów i okręgów.
+
+~~~mermaid
+flowchart LR
+  P[Politycy: osoba] --> S[StartyWyborcze: konkretny start]
+  W[Wybory: data, kadencja, tura] --> S
+  L[ListaWyborcza: numer listy] --> S
+  O[OkregWyborczy: numer okręgu] --> L
+  D[SzczegolyOkregow: snapshot statystyk] --> O
+  K[KomitetyWyborcze] --> L
+  R[WynikiWyborow: głosy i CzyMandat] --> S
+  PA[Partia i partia popierająca] --> S
+  S --> M[Mandaty]
+  M --> Z[ZdarzeniaMandatowe]
+~~~
+
+Przykładowy rekord należy czytać następująco:
+
+1. **Politycy** identyfikuje osobę niezależnie od wyborów. Nie zapisujemy przy niej „aktualnego okręgu” ani „aktualnej listy”, ponieważ takie wartości zmieniają się między startami.
+2. **Wybory** identyfikuje konkretne wydarzenie poprzez rodzaj, datę, kadencję, turę i ordynację.
+3. **OkregWyborczy** identyfikuje okręg, a **SzczegolyOkregow** przechowuje jego stan dla konkretnych wyborów: mieszkańców, uprawnionych, liczbę mandatów, list i kandydatów. Statystyki z 2019 roku nie nadpisują statystyk z 2023 roku.
+4. **ListaWyborcza** wskazuje numer listy, wybory, okręg i komitet. Wszystkie rekordy StartyWyborcze z tym samym ListaId tworzą skład tej listy.
+5. **StartyWyborcze** jest centralnym faktem kandydowania. Łączy PolitykId, WyboryId, opcjonalne ListaId, pozycję na liście, komitet, partię, partię popierającą oraz informacje takie jak zawód i miejsce zamieszkania.
+6. **WynikiWyborow** jest wynikiem tego jednego startu: liczbą głosów i flagą CzyMandat pochodzącą z wyniku PKW.
+7. **Mandaty** nie jest synonimem wyniku. Reprezentuje okres faktycznego sprawowania mandatu i wskazuje start będący jego podstawą.
+8. **ZdarzeniaMandatowe** tworzy historię mandatu: wybór, objęcie, wstąpienie w sukcesji, zrzeczenie, zgon, wygaśnięcie lub koniec kadencji.
+
+Dzięki temu można odpowiedzieć nie tylko „czy osoba była kandydatem”, ale także: w których wyborach, w jakim okręgu, z której listy i pozycji, z jakim wynikiem, przeciwko komu na tej samej liście oraz czy i w jaki sposób faktycznie sprawowała mandat.
+
+### Wynik wyborów a życie kadencji
+
+Rozdzielenie WynikiWyborow od Mandaty jest kluczowe. PKW opisuje rozstrzygnięcie głosowania. Po wyborach mandat może wygasnąć, poseł może się go zrzec lub umrzeć, a jego miejsce może objąć osoba, która początkowo miała CzyMandat=false. Zmiana składu Sejmu nie zmienia historycznego wyniku wyborów; tworzy nowy Mandat i nowe ZdarzenieMandatowe.
+
 ## Warstwa importu
 
 | Tabela | Klucz i najważniejsze kolumny | Relacje, indeksy i przeznaczenie |

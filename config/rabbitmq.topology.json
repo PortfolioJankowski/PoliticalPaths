@@ -1,0 +1,22 @@
+{
+  "RabbitMq": {
+    "Topology": {
+      "Exchanges": [
+        { "Name": "politicalpaths.events", "Type": "topic", "Durable": true },
+        { "Name": "politicalpaths.dead-letter", "Type": "topic", "Durable": true }
+      ],
+      "Queues": [
+        { "Name": "notifications.discord", "Durable": true, "Type": "quorum", "DeliveryLimit": 5, "DeadLetterExchange": "politicalpaths.dead-letter" },
+        { "Name": "notifications.discord.dead-letter", "Durable": true },
+        { "Name": "notifications.email", "Durable": true, "Type": "quorum", "DeliveryLimit": 5, "DeadLetterExchange": "politicalpaths.dead-letter" },
+        { "Name": "notifications.email.dead-letter", "Durable": true }
+      ],
+      "Bindings": [
+        { "Exchange": "politicalpaths.events", "Queue": "notifications.discord", "RoutingKey": "notification.discord.#" },
+        { "Exchange": "politicalpaths.dead-letter", "Queue": "notifications.discord.dead-letter", "RoutingKey": "notification.discord.#" },
+        { "Exchange": "politicalpaths.events", "Queue": "notifications.email", "RoutingKey": "notification.email.#" },
+        { "Exchange": "politicalpaths.dead-letter", "Queue": "notifications.email.dead-letter", "RoutingKey": "notification.email.#" }
+      ]
+    }
+  }
+}

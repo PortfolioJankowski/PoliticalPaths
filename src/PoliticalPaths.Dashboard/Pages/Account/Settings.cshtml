@@ -1,0 +1,20 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Account.SettingsModel
+@{
+    ViewData["Title"] = "Ustawienia konta";
+}
+<div class="page-heading"><div><div class="page-kicker">Twoje konto</div><h1>Ustawienia</h1><p class="page-intro">Zarządzaj powiadomieniami i bezpieczeństwem konta.</p></div></div>
+@if (Model.StatusMessage is not null) { <div class="alert alert-success">@Model.StatusMessage</div> }
+<div class="card p-4 form-card mb-4">
+    <h2 class="section-title mt-0">Powiadomienia e-mail</h2>
+    <p class="page-intro mb-3">Po wyrażeniu zgody administrator może wysyłać Ci alerty o ważnych zmianach w aplikacji. Zgodę możesz wycofać w dowolnej chwili.</p>
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-check form-switch mb-3">
+            <input asp-for="EmailNotificationsEnabled" class="form-check-input" />
+            <label asp-for="EmailNotificationsEnabled" class="form-check-label">Chcę otrzymywać alerty e-mail</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Zapisz ustawienia</button>
+    </form>
+</div>
+<div class="card p-4 form-card"><h2 class="section-title mt-0">Bezpieczeństwo</h2><p class="page-intro">Możesz ustawić nowe hasło do konta.</p><a asp-page="/Account/ChangePassword" class="btn btn-light border">Zmień hasło</a></div>

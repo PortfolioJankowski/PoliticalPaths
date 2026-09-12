@@ -508,6 +508,184 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.ToTable("ZdarzeniaMandatowe", (string)null);
                 });
 
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.ContactMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.ToTable("ContactMessages");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.EmailCampaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("varchar(10000)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.ToTable("EmailCampaigns");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.EmailDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("EmailDeliveries");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.InboxMessage", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Consumer")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("ProcessedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("MessageId", "Consumer");
+
+                    b.ToTable("InboxMessages");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Exchange")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime?>("NextAttemptAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ProcessedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("RoutingKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessedAtUtc", "NextAttemptAtUtc");
+
+                    b.ToTable("OutboxMessages");
+                });
+
             modelBuilder.Entity("PoliticalPaths.Domain.Politycy.Polityk", b =>
                 {
                     b.Property<Guid>("Id")
@@ -709,7 +887,7 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Property<int>("LiczbaMandatow")
                         .HasColumnType("int");
 
-                    b.Property<int>("Mieszkancy")
+                    b.Property<int?>("Mieszkancy")
                         .HasColumnType("int");
 
                     b.Property<int>("RokWyborow")
@@ -779,6 +957,12 @@ namespace PoliticalPaths.Infrastructure.Migrations
                         .HasColumnType("varchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("EmailNotificationsChangedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsActive")
@@ -975,6 +1159,17 @@ namespace PoliticalPaths.Infrastructure.Migrations
                     b.Navigation("Polityk");
                 });
 
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.EmailDelivery", b =>
+                {
+                    b.HasOne("PoliticalPaths.Domain.Messaging.EmailCampaign", "Campaign")
+                        .WithMany("Deliveries")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
             modelBuilder.Entity("PoliticalPaths.Domain.StartyWyborcze.StartWyborczy", b =>
                 {
                     b.HasOne("PoliticalPaths.Domain.Wybory.ListaWyborcza", "ListaWyborcza")
@@ -1062,6 +1257,11 @@ namespace PoliticalPaths.Infrastructure.Migrations
             modelBuilder.Entity("PoliticalPaths.Domain.Kadencje.Mandat", b =>
                 {
                     b.Navigation("Zdarzenia");
+                });
+
+            modelBuilder.Entity("PoliticalPaths.Domain.Messaging.EmailCampaign", b =>
+                {
+                    b.Navigation("Deliveries");
                 });
 
             modelBuilder.Entity("PoliticalPaths.Domain.Politycy.Polityk", b =>

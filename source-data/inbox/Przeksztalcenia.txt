@@ -13,3 +13,14 @@ Trochę mi się to nie zgadza … PKW podaje na stronie inne dane.
 W Excelu 37 243 576 mieszkańców a PKW 37 424 459
 W Excelu 30 732 278 mieszkańców a pkw 30 534 948
 W 2015 nie mamy danych dotyczących Poparcia dla kandydata. Jest do jakiej partii przynależy ale nie ma poparcia
+
+3. Dla 2011 w pliku "Okręgi wyborcze - plik XLSX" brakuje liczby uprawnionych do głosowania.
+Informację o mieszkańcach biorę z tej tabeli https://wybory2011.pkw.gov.pl/geo/pl/000000.html#tabs-1
+
+4. Dla okręgów z 2005 posłużono dla się danymi dla okręgów ze strony pkw https://wybory2005.pkw.gov.pl/SJM/PL/KOMITETY/0.html. Tutaj są dane odnośnie liczby list i kandydatów.
+Liczba uprawnionych stąd https://wybory2005.pkw.gov.pl/SJM/PL/WYN/F/index.htm
+Brakuje w 2005 liczby mieszkańców
+
+5. Dla okręgów z 2007 jest dokładnie ta sama sprawa co w 2005. Nie mamy danych nt. mieszkańców
+
+6. Dla kandydatów z 2005 nie ma już nawet przynależności partyjnej ..

@@ -198,10 +198,10 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         return val;
     }
 
-    public async Task<Partia> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default)
+    public async Task<Partia?> GetOrCreatePartiaAsync(string? nazwa, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(nazwa) || TransformationConsts.BEZPARTYJNE_OKREŚLENIA.Contains(nazwa, StringComparer.OrdinalIgnoreCase))
-            return null!;
+            return null;
 
         var key = $"partia_{nazwa}";
         if (_localCache.TryGetValue(key, out var cached)) return (Partia)cached;
@@ -234,10 +234,23 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
 
     public async Task<Polityk> GetOrCreatePolitykAsync(NamesSurnameDto imionaNazwisko, CancellationToken ct = default)
     {
-        var key = $"polityk_{imionaNazwisko.Surname}_{imionaNazwisko.Name}_{imionaNazwisko.SecondName}";
+        var normalizedSurname = NormalizeIdentityPart(imionaNazwisko.Surname);
+        var normalizedName = NormalizeIdentityPart(imionaNazwisko.Name);
+        var normalizedSecondName = NormalizeIdentityPart(imionaNazwisko.SecondName);
+        var key = $"polityk_{normalizedSurname}_{normalizedName}_{normalizedSecondName}";
         if (_localCache.TryGetValue(key, out var cached)) return (Polityk)cached;
 
-        var val = await db.Politycy.FirstOrDefaultAsync(p => p.Nazwisko == imionaNazwisko.Surname && p.Imie == imionaNazwisko.Name && p.DrugieImie == imionaNazwisko.SecondName, ct);
+        // Zapytanie SQL nie widzi encji Added. Sprawdzenie Local zapobiega
+        // duplikatowi w tej samej paczce jeszcze przed SaveChanges.
+        var val = db.Politycy.Local.FirstOrDefault(p =>
+            NormalizeIdentityPart(p.Nazwisko) == normalizedSurname &&
+            NormalizeIdentityPart(p.Imie) == normalizedName &&
+            NormalizeIdentityPart(p.DrugieImie) == normalizedSecondName);
+
+        val ??= await db.Politycy.FirstOrDefaultAsync(p =>
+            p.Nazwisko.Trim().ToUpper() == normalizedSurname &&
+            p.Imie.Trim().ToUpper() == normalizedName &&
+            (p.DrugieImie ?? "").Trim().ToUpper() == normalizedSecondName, ct);
 
         if (val == null)
         {
@@ -248,6 +261,9 @@ public sealed class EntityResolver(IAppDbContext db, IDistributedCache cache) : 
         _localCache[key] = val;
         return val;
     }
+
+    private static string NormalizeIdentityPart(string? value) =>
+        value?.Trim().ToUpperInvariant() ?? string.Empty;
 
     public void ClearCache()
     {

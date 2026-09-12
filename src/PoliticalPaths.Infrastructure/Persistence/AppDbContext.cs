@@ -8,6 +8,7 @@ using PoliticalPaths.Domain.Kadencje;
 using PoliticalPaths.Domain.Politycy;
 using PoliticalPaths.Domain.StartyWyborcze;
 using PoliticalPaths.Domain.Wybory;
+using PoliticalPaths.Domain.Messaging;
 using PoliticalPaths.Infrastructure.Identity;
 
 namespace PoliticalPaths.Infrastructure.Persistence;
@@ -36,6 +37,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<WynikiWyborow> WynikiWyborow => Set<WynikiWyborow>();
     public DbSet<Mandat> Mandaty => Set<Mandat>();
     public DbSet<ZdarzenieMandatowe> ZdarzeniaMandatowe => Set<ZdarzenieMandatowe>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<EmailCampaign> EmailCampaigns => Set<EmailCampaign>();
+    public DbSet<EmailDelivery> EmailDeliveries => Set<EmailDelivery>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,6 +85,48 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         modelBuilder.Entity<SzczegolyOkregu>(b =>
         {
             b.HasKey(x => new { x.OkregId, x.WyboryId });
+        });
+
+        modelBuilder.Entity<ContactMessage>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.UserEmail).HasMaxLength(256).IsRequired();
+            b.Property(x => x.Category).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Subject).HasMaxLength(150).IsRequired();
+            b.Property(x => x.Body).HasMaxLength(2000).IsRequired();
+            b.HasIndex(x => x.CreatedAtUtc);
+        });
+        modelBuilder.Entity<OutboxMessage>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Type).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Exchange).HasMaxLength(200).IsRequired();
+            b.Property(x => x.RoutingKey).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Payload).HasColumnType("longtext").IsRequired();
+            b.Property(x => x.LastError).HasMaxLength(2000);
+            b.HasIndex(x => new { x.ProcessedAtUtc, x.NextAttemptAtUtc });
+        });
+        modelBuilder.Entity<InboxMessage>(b =>
+        {
+            b.HasKey(x => new { x.MessageId, x.Consumer });
+            b.Property(x => x.Consumer).HasMaxLength(200);
+        });
+        modelBuilder.Entity<EmailCampaign>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Subject).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Body).HasMaxLength(10000).IsRequired();
+            b.HasIndex(x => x.CreatedAtUtc);
+        });
+        modelBuilder.Entity<EmailDelivery>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.RecipientEmail).HasMaxLength(256).IsRequired();
+            b.Property(x => x.Status).HasConversion<int>();
+            b.Property(x => x.ProviderMessageId).HasMaxLength(200);
+            b.Property(x => x.LastError).HasMaxLength(2000);
+            b.HasIndex(x => new { x.CampaignId, x.UserId }).IsUnique();
+            b.HasOne(x => x.Campaign).WithMany(x => x.Deliveries).HasForeignKey(x => x.CampaignId);
         });
 
         modelBuilder.Entity<SzczegolyOkregu>()

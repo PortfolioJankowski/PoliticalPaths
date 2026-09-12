@@ -1,12 +1,40 @@
 @page "{id:guid}"
 @model PoliticalPaths.Dashboard.Pages.Politicians.DetailsModel
-<h1>@Model.Politician!.Name</h1>
-<p>Data urodzenia: @(Model.Politician.BirthDate?.ToString() ?? "brak danych")</p>
-<h2>Starty wyborcze</h2>
-<table class="table table-striped"><thead><tr><th>Data</th><th>Wybory</th><th>Okręg</th><th>Nr listy</th><th>Pozycja</th><th>Komitet</th><th>Partia</th><th>Poparcie</th><th>Głosy</th><th>% listy</th><th>Mandat</th></tr></thead><tbody>
-@foreach (var item in Model.Politician.Participations) { <tr><td>@item.Date</td><td>@item.Election</td><td>@item.District</td><td>@item.ListNumber</td><td>@item.PositionOnList</td><td>@item.Committee</td><td>@item.Party</td><td>@item.SupportingParty</td><td>@item.Votes</td><td>@(item.ListVoteShare?.ToString("0.##") ?? "—")</td><td>@(item.Mandate ? "Tak" : "Nie")</td></tr> }
-</tbody></table>
-<h2>Zdarzenia mandatowe</h2>
-<table class="table table-striped"><thead><tr><th>Data</th><th>Typ</th><th>Opis</th></tr></thead><tbody>
-@foreach (var item in Model.Politician.Events) { <tr><td>@item.Date</td><td>@item.Type</td><td>@item.Description</td></tr> }
-</tbody></table>
+@{
+    ViewData["Title"] = Model.Politician!.Name;
+}
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Profil polityka</div>
+        <h1>@Model.Politician.Name</h1>
+        <p class="page-intro">Data urodzenia: @(Model.Politician.BirthDate?.ToString("dd.MM.yyyy") ?? "brak danych")</p>
+    </div>
+</div>
+
+<section>
+    <h2 class="section-title">Starty wyborcze</h2>
+    @if (Model.Politician.Participations.Count == 0) {
+        <div class="card p-4"><p class="page-intro m-0">Brak zarejestrowanych startów wyborczych.</p></div>
+    }
+    @foreach (var participation in Model.Politician.Participations) {
+        <partial name="_ParticipationDetails" model="participation" />
+    }
+</section>
+
+<section>
+    <h2 class="section-title">Zdarzenia mandatowe</h2>
+    @if (Model.Politician.Events.Count == 0) {
+        <div class="card p-4"><p class="page-intro m-0">Brak zarejestrowanych zdarzeń mandatowych.</p></div>
+    } else {
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Data</th><th>Typ</th><th>Opis</th><th>Dokument</th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Politician.Events) {
+                    <tr><td>@item.Date.ToString("dd.MM.yyyy")</td><td>@item.Type</td><td>@(item.Description ?? "—")</td><td>@(item.Reference ?? "—")</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

@@ -1,6 +1,30 @@
 @page
 @model PoliticalPaths.Dashboard.Pages.Elections.IndexModel
-<div class="page-heading"><div><div class="page-kicker">Archiwum</div><h1>Wybory</h1><p class="page-intro">Zestawienie zaimportowanych wydarzeń wyborczych.</p></div></div>
-<table class="table table-striped"><thead><tr><th>Rodzaj</th><th>Data</th><th>Kadencja</th><th>Powiązane dane</th></tr></thead><tbody>
-@foreach (var election in Model.Elections) { <tr><td>@election.Type</td><td>@election.Date</td><td>@election.Term</td><td>@election.Starts</td></tr> }
-</tbody></table>
+@{
+    ViewData["Title"] = "Wybory";
+}
+<div class="page-heading"><div><div class="page-kicker">Archiwum</div><h1>Wybory</h1><p class="page-intro">Zestawienie zaimportowanych wydarzeń wyborczych i zakresu dostępnych danych.</p></div><a asp-page="/Districts/Index" class="btn btn-primary">Porównaj okręgi w czasie</a></div>
+<div class="table-wrap">
+<table class="table">
+    <thead><tr><th>Rodzaj</th><th>Data</th><th>Kadencja</th><th>Kandydaci</th><th>Listy</th><th>Mandaty w wyniku</th><th>Źródło danych</th></tr></thead>
+    <tbody>
+    @foreach (var election in Model.Elections) {
+        <tr>
+            <td>@election.Type</td>
+            <td>@election.Date.ToString("dd.MM.yyyy")</td>
+            <td>@(election.Term ?? "—")</td>
+            <td>@election.Candidates.ToString("N0")</td>
+            <td>@election.Lists.ToString("N0")</td>
+            <td>@election.Mandates.ToString("N0")</td>
+            <td>
+                @if (election.SourceUrl is not null) {
+                    <a href="@election.SourceUrl" target="_blank" rel="noopener noreferrer">Pliki PKW ↗</a>
+                } else {
+                    <span>—</span>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>

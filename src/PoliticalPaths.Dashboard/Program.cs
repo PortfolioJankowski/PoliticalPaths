@@ -13,8 +13,10 @@ using PoliticalPaths.Dashboard.Services;
 using PoliticalPaths.Infrastructure;
 using PoliticalPaths.Infrastructure.Identity;
 using PoliticalPaths.Importers.Raw;
+using PoliticalPaths.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "rabbitmq.topology.json"), optional: false, reloadOnChange: true);
 var rateLimiting = builder.Configuration.GetSection(RateLimitingOptions.SectionName)
     .Get<RateLimitingOptions>() ?? new RateLimitingOptions();
 builder.Services.AddOptions<RateLimitingOptions>()
@@ -37,7 +39,12 @@ builder.Services.AddApplication();
 builder.Services.AddRawImporters();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<DashboardQueryService>();
+builder.Services.AddScoped<ContactSubmissionService>();
+builder.Services.AddScoped<EmailCampaignService>();
 builder.Services.AddSingleton<ChangelogService>();
+builder.Services.AddSingleton(sp =>
+    ElectionSourceCatalog.Load(sp.GetRequiredService<IWebHostEnvironment>()));
+builder.Services.AddRabbitMqMessaging(builder.Configuration, publishOutbox: true);
 
 builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
@@ -116,6 +123,15 @@ builder.Services.AddRateLimiter(options =>
         {
             PermitLimit = rateLimiting.LoginPermitLimit,
             Window = TimeSpan.FromMinutes(rateLimiting.LoginWindowMinutes),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+    options.AddPolicy("contact", context => RateLimitPartition.GetFixedWindowLimiter(
+        $"contact:{context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3,
+            Window = TimeSpan.FromHours(1),
             QueueLimit = 0,
             AutoReplenishment = true
         }));

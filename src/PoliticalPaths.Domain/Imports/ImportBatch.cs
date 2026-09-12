@@ -28,9 +28,12 @@ public class ImportBatch
         this.CompletedAt = null;
     }
 
-    public void Finish()
+    public void Finish(bool hasFailures = false)
     {
-        this.LastSyncedAt = DateTime.UtcNow;
+        var completedAt = DateTime.UtcNow;
+        this.Status = hasFailures ? ImportBatchStatus.PartiallyCompleted : ImportBatchStatus.Completed;
+        this.CompletedAt = completedAt;
+        this.LastSyncedAt = completedAt;
         this.TriggeredBy = "sync";
     }
 }

@@ -13,7 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <Content Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\source-data\file-mappings.json" Link="file-mappings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\config\rabbitmq.topology.json" Link="rabbitmq.topology.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

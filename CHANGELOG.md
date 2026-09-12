@@ -11,9 +11,21 @@ Najważniejsze zmiany w Political Paths. Wpisy opisują funkcje istotne dla uży
 
 ### Added
 
+- Dodano formularz kontaktowy, transakcyjny outbox, RabbitMQ i worker przekazujący zgłoszenia do Discorda.
+- Dodano ustawienia zgody na alerty oraz panel administratora wysyłający kampanie e-mail przez SendGrid.
 - Dodano panel administratora do tworzenia, blokowania i zarządzania rolami kont.
 - Dodano widok changelogu i podsumowanie ostatnich zmian na dashboardzie.
 - Dodano szczegółową dokumentację bazy danych, importu i usług uzupełniających.
+- Dodano dokumentację modelu danych i procesu importu dostępną bezpośrednio w Dashboardzie.
+- Rozszerzono dokumentację o relacje pojedynczego startu wyborczego oraz szczegółową logikę wzbogacania danych PKW informacjami z API Sejmu.
+- Dodano osobny widok historii okręgów, porównujący ich statystyki w czasie oddzielnie dla każdego rodzaju wyborów.
+- Rozbudowano szczegóły polityka o zwijany panel statystyk okręgu oraz pełny skład jego listy wyborczej.
+
+### Fixed
+
+- Ujednolicono rozpoznawanie polityków niezależnie od wielkości liter w imieniu i nazwisku.
+- Import kandydatów ze starszych arkuszy PKW obsługuje brak opcjonalnej informacji o przynależności partyjnej.
+- Widok importów pokazuje czas zakończenia, a widok wyborów prezentuje jednoznaczne liczniki i link do źródła PKW.
 
 ## 2026-09-07
 

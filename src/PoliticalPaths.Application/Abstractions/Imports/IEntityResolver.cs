@@ -22,7 +22,7 @@ public interface IEntityResolver
     
     Task<ListaWyborcza> GetOrCreateListaAsync(Guid okregId, Guid wyboryId, Guid komitetId, int numer, CancellationToken ct = default);
     
-    Task<Partia> GetOrCreatePartiaAsync(string nazwa, CancellationToken ct = default);
+    Task<Partia?> GetOrCreatePartiaAsync(string? nazwa, CancellationToken ct = default);
     
     Task<Polityk> GetOrCreatePolitykAsync(NamesSurnameDto imionaNazwisko, CancellationToken ct = default);
 

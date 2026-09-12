@@ -1,0 +1,16 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.ContactModel
+@{
+    ViewData["Title"] = "Kontakt";
+}
+<div class="page-heading"><div><div class="page-kicker">Kontakt</div><h1>Napisz do administratorów</h1><p class="page-intro">Zgłoś błąd danych, zadaj pytanie albo zaproponuj zmianę. Wiadomość zostanie bezpiecznie przekazana na kanał administracyjny.</p></div></div>
+@if (Model.Confirmation is not null) { <div class="alert alert-success">@Model.Confirmation</div> }
+<form method="post" class="card contact-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Input.Category" class="form-label">Kategoria</label><select asp-for="Input.Category" class="form-select"><option>Błąd danych</option><option>Sugestia</option><option>Pytanie</option><option>Inne</option></select></div>
+    <div class="mb-3"><label asp-for="Input.Subject" class="form-label">Temat</label><input asp-for="Input.Subject" class="form-control" /><span asp-validation-for="Input.Subject" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Input.Body" class="form-label">Wiadomość</label><textarea asp-for="Input.Body" class="form-control" rows="8"></textarea><div class="form-text">Od 10 do 2000 znaków. Limit: 3 wiadomości na godzinę.</div><span asp-validation-for="Input.Body" class="text-danger"></span></div>
+    <div class="contact-honeypot" aria-hidden="true"><label asp-for="Input.Website">Strona WWW</label><input asp-for="Input.Website" tabindex="-1" autocomplete="off" /></div>
+    <button type="submit" class="btn btn-primary">Wyślij wiadomość</button>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

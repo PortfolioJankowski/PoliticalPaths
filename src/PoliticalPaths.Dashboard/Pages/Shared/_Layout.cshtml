@@ -22,7 +22,11 @@
             <a asp-page="/Elections/Index" class="side-link"><span class="nav-icon">▣</span>Wybory</a>
             <a asp-page="/Politicians/Index" class="side-link"><span class="nav-icon">◎</span>Politycy</a>
             <a asp-page="/Changelog" class="side-link"><span class="nav-icon">≡</span>Changelog</a>
+            <a asp-page="/Documentation" class="side-link"><span class="nav-icon">?</span>Dokumentacja</a>
+            <a asp-page="/Districts/Index" class="side-link"><span class="nav-icon">#</span>Historia okręgów</a>
+            <a asp-page="/Contact" class="side-link"><span class="nav-icon">✉</span>Kontakt</a>
             @if (User.IsInRole("Admin")) {
+                <a asp-page="/Admin/Email/Index" class="side-link"><span class="nav-icon">✉</span>Wyślij e-mail</a>
                 <a asp-page="/Admin/Users/Index" class="side-link"><span class="nav-icon">⚙</span>Użytkownicy</a>
             }
         </nav>
@@ -33,7 +37,7 @@
             <div class="mobile-brand">Political <b>Paths</b></div>
             <div class="topbar-user">
                 <span>@User.Identity?.Name</span>
-                <a asp-page="/Account/ChangePassword" class="btn btn-sm btn-light border">Zmień hasło</a>
+                <a asp-page="/Account/Settings" class="btn btn-sm btn-light border">Ustawienia</a>
                 <form method="post" asp-page="/Account/Logout"><button type="submit" class="btn btn-sm btn-light border">Wyloguj</button></form>
             </div>
         </header>

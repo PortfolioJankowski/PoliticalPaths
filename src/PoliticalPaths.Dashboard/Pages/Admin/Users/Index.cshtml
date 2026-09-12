@@ -23,7 +23,7 @@
 
 <div class="table-wrap">
 <table class="table">
-    <thead><tr><th>E-mail</th><th>Rola</th><th>Status</th><th>Operacje</th></tr></thead>
+    <thead><tr><th>E-mail</th><th>Rola</th><th>Alerty</th><th>Status</th><th>Operacje</th></tr></thead>
     <tbody>
     @foreach (var user in Model.Users) {
         <tr>
@@ -38,6 +38,7 @@
                     <button class="btn btn-sm btn-light border">Zapisz</button>
                 </form>
             </td>
+            <td>@(user.EmailNotificationsEnabled ? "Włączone" : "Wyłączone")</td>
             <td>@(user.IsActive ? (user.IsLockedOut ? "Blokada czasowa" : "Aktywne") : "Zablokowane")</td>
             <td><div class="d-flex gap-2">
                 <form method="post" asp-page-handler="ResetPassword"><input type="hidden" name="id" value="@user.Id" /><button class="btn btn-sm btn-light border">Reset hasła</button></form>

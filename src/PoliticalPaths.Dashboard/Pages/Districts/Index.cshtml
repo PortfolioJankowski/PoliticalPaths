@@ -1,0 +1,101 @@
+@page
+@model PoliticalPaths.Dashboard.Pages.Districts.IndexModel
+@{
+    ViewData["Title"] = "Historia okręgów";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Analiza historyczna</div>
+        <h1>Jak zmieniały się okręgi wyborcze?</h1>
+        <p class="page-intro">Porównanie mieszkańców, uprawnionych, mandatów, list i kandydatów pomiędzy kolejnymi wyborami.</p>
+    </div>
+</div>
+
+<div class="district-history-note">
+    <strong>Sejm i Senat są analizowane osobno.</strong>
+    Ten sam numer okręgu w różnych rodzajach wyborów nie oznacza tego samego okręgu. Brak liczby mieszkańców w danych PKW pokazujemy jako „brak danych” i pomijamy przy obliczaniu zmiany.
+</div>
+
+@if (Model.Overview.ElectionTypes.Count == 0)
+{
+    <div class="card empty-state">Brak szczegółowych danych okręgów do porównania.</div>
+}
+else
+{
+    <nav class="district-type-nav card" aria-label="Rodzaje wyborów">
+        @foreach (var type in Model.Overview.ElectionTypes)
+        {
+            <a href="#type-@type.ElectionTypeId">@type.ElectionType <span>@type.Districts.Count okręgów</span></a>
+        }
+    </nav>
+
+    @foreach (var type in Model.Overview.ElectionTypes)
+    {
+        var electionsCount = type.Districts.SelectMany(x => x.History).Select(x => x.ElectionId).Distinct().Count();
+        var observationsCount = type.Districts.Sum(x => x.History.Count);
+        var missingResidents = type.Districts.SelectMany(x => x.History).Count(x => x.Residents is null);
+
+        <section class="district-type-section" id="type-@type.ElectionTypeId">
+            <div class="district-type-heading">
+                <div><div class="page-kicker">Rodzaj wyborów</div><h2>@type.ElectionType</h2></div>
+                <div class="district-type-stats">
+                    <span><strong>@type.Districts.Count</strong> okręgów</span>
+                    <span><strong>@electionsCount</strong> wyborów</span>
+                    <span><strong>@observationsCount</strong> obserwacji</span>
+                    <span><strong>@missingResidents</strong> bez liczby mieszkańców</span>
+                </div>
+            </div>
+
+            <div class="district-history-grid">
+                @foreach (var district in type.Districts)
+                {
+                    var collapseId = $"district-{type.ElectionTypeId:N}-{district.DistrictNumber}";
+                    var latest = district.History.First();
+                    <article class="card district-history-card">
+                        <button class="district-history-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            <span><small>Okręg</small><strong>nr @district.DistrictNumber</strong></span>
+                            <span><small>Ostatnie dane</small><strong>@latest.ElectionDate.Year</strong></span>
+                            <span><small>Mandaty</small><strong>@latest.Seats</strong></span>
+                            <span><small>Mieszkańcy</small><strong>@(latest.Residents?.ToString("N0") ?? "brak danych")</strong></span>
+                            <span class="district-history-chevron">⌄</span>
+                        </button>
+                        <div class="collapse" id="@collapseId">
+                            <div class="table-wrap district-history-table">
+                                <table class="table">
+                                    <thead><tr><th>Wybory</th><th>Kadencja</th><th>Mieszkańcy</th><th>Zmiana mieszkańców</th><th>Uprawnieni</th><th>Mandaty</th><th>Listy</th><th>Kandydaci</th></tr></thead>
+                                    <tbody>
+                                    @foreach (var point in district.History)
+                                    {
+                                        <tr>
+                                            <td>@point.ElectionDate.ToString("dd.MM.yyyy")</td>
+                                            <td>@(point.Term ?? "—")</td>
+                                            <td>@(point.Residents?.ToString("N0") ?? "brak danych")</td>
+                                            <td>
+                                                @if (point.ResidentsChange.HasValue)
+                                                {
+                                                    var sign = point.ResidentsChange.Value > 0 ? "+" : "";
+                                                    var changeClass = point.ResidentsChange.Value > 0 ? "positive" : point.ResidentsChange.Value < 0 ? "negative" : "neutral";
+                                                    <span class="district-change @changeClass">@sign@point.ResidentsChange.Value.ToString("N0") (@sign@point.ResidentsChangePercent?.ToString("N2")%)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>@point.EligibleVoters.ToString("N0")</td>
+                                            <td>@point.Seats</td>
+                                            <td>@point.Lists</td>
+                                            <td>@point.Candidates.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+}

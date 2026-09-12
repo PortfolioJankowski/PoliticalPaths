@@ -1,6 +1,6 @@
 @page
 @model PoliticalPaths.Dashboard.Pages.Imports.IndexModel
 <div class="page-heading"><div><div class="page-kicker">Źródła danych</div><h1>Zaimportowane pliki</h1><p class="page-intro">Historia plików przetworzonych przez pipeline importu.</p></div></div>
-<table class="table table-striped"><thead><tr><th>Plik</th><th>Pipeline</th><th>Status</th><th>Wiersze</th><th>Błędy</th><th>Zakończono</th></tr></thead><tbody>
-@foreach (var file in Model.Files) { <tr><td>@file.Name</td><td>@file.Pipeline</td><td>@file.Status</td><td>@file.Rows</td><td>@file.FailedRows</td><td>@file.CompletedAt?.ToLocalTime().ToString("g")</td></tr> }
+<table class="table table-striped"><thead><tr><th>Plik</th><th>Pipeline</th><th>Status</th><th>Wiersze</th><th>Błędy</th><th>Zakończono import</th></tr></thead><tbody>
+@foreach (var file in Model.Files) { <tr><td>@System.IO.Path.GetFileName(file.Name)</td><td>@file.Pipeline</td><td>@file.Status</td><td>@file.Rows</td><td>@file.FailedRows</td><td>@(file.CompletedAt?.ToLocalTime().ToString("g") ?? "—")</td></tr> }
 </tbody></table>

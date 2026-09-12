@@ -33,6 +33,25 @@ services:
       timeout: 5s
       retries: 12
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: politicalpaths-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    volumes:
+      - politicalpaths_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   import-job:
     build:
       context: .
@@ -68,17 +87,57 @@ services:
     depends_on:
       import-job:
         condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE};Uid=${MARIADB_USER};Pwd=${MARIADB_PASSWORD};"
       ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD},abortConnect=false"
       DataProtection__KeysPath: "/app/data-protection-keys"
+      RabbitMq__Enabled: "true"
+      RabbitMq__Host: ${RABBITMQ_HOST:-rabbitmq}
+      RabbitMq__Port: ${RABBITMQ_PORT:-5672}
+      RabbitMq__VirtualHost: ${RABBITMQ_VHOST:-/}
+      RabbitMq__Username: ${RABBITMQ_USERNAME}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      RabbitMq__UseTls: ${RABBITMQ_USE_TLS:-false}
+      RabbitMq__ConnectionName: politicalpaths-dashboard-outbox
     volumes:
       - politicalpaths_dataprotection_keys:/app/data-protection-keys
     ports:
       - "8080:8080"
 
+  notification-worker:
+    build:
+      context: .
+      dockerfile: src/PoliticalPaths.NotificationWorker/Dockerfile
+    container_name: politicalpaths-notifications
+    restart: unless-stopped
+    depends_on:
+      import-job:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE};Uid=${MARIADB_USER};Pwd=${MARIADB_PASSWORD};"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD},abortConnect=false"
+      RabbitMq__Enabled: "true"
+      RabbitMq__Host: ${RABBITMQ_HOST:-rabbitmq}
+      RabbitMq__Port: ${RABBITMQ_PORT:-5672}
+      RabbitMq__VirtualHost: ${RABBITMQ_VHOST:-/}
+      RabbitMq__Username: ${RABBITMQ_USERNAME}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      RabbitMq__UseTls: ${RABBITMQ_USE_TLS:-false}
+      RabbitMq__ConnectionName: politicalpaths-notification-worker
+      Discord__WebhookUrl: ${DISCORD_WEBHOOK_URL}
+      Discord__Username: "${DISCORD_USERNAME:-Political Paths}"
+      SendGrid__Enabled: ${SENDGRID_ENABLED:-false}
+      SendGrid__ApiKey: ${SENDGRID_API_KEY}
+      SendGrid__FromEmail: ${SENDGRID_FROM_EMAIL}
+      SendGrid__FromName: "${SENDGRID_FROM_NAME:-Political Paths}"
+
 volumes:
   politicalpaths_mariadb_data:
   politicalpaths_redis_data:
+  politicalpaths_rabbitmq_data:
   politicalpaths_dataprotection_keys:

@@ -4,7 +4,7 @@
                 {
                     "NazwyLogiczne": ["Kandydaci", "Okregi"],
                     "Link": "https://sejmsenat2023.pkw.gov.pl/sejmsenat2023/pl/dane_w_arkuszach",
-                    "NazwyPlikow": ["okregi_sejm_utf8.xlsx", "kandydaci_sejm_utf8.xlsx"],
+                    "NazwyPlikow": ["okregi_sejm_2023.xlsx", "kandydaci_sejm_2023.xlsx"],
                     "TypPlikow": "xlsx",
                     "DataWyborow": "2023-10-15",
                     "DataOgloszenia": "2023-08-08",
@@ -48,7 +48,31 @@
                     "Organ": "Sejm",
 					"Kadencja": "VII",
                     "CzyUzupelniajace:": false
+                },
+                {
+                    "NazwyLogiczne": ["Kandydaci", "Okregi"],
+                    "Link": "https://danewyborcze.kbw.gov.pl/indexa8cd.html?title=Wybory_do_Sejmu_w_2007_r.",
+                    "NazwyPlikow": ["okregi_sejm_2007.xlsx", "kandydaci_sejm_2007.xlsx"],
+                    "TypPlikow": "xlsx",
+                    "DataWyborow": "2007-09-25",
+                    "DataOgloszenia": "2007-05-23",
+                    "Tura": "1",
+                    "Organ": "Sejm",
+					"Kadencja": "VI",
+                    "CzyUzupelniajace:": false
+                },
+                {
+                    "NazwyLogiczne": ["Kandydaci", "Okregi"],
+                    "Link": "https://danewyborcze.kbw.gov.pl/index0cff.html?title=Wybory_do_Sejmu_w_2005_r.",
+                    "NazwyPlikow": ["okregi_sejm_2005.xlsx", "kandydaci_sejm_2005.xlsx"],
+                    "TypPlikow": "xlsx",
+                    "DataWyborow": "2005-10-21",
+                    "DataOgloszenia": "2005-09-07",
+                    "Tura": "1",
+                    "Organ": "Sejm",
+					"Kadencja": "V",
+                    "CzyUzupelniajace:": false
                 }
             ]
     }
- }   
+ }
